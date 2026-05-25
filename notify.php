@@ -6,7 +6,6 @@ $conn = getDatabaseConnection();
 
 // Players to watch (case sensitive)
 $watchedPlayers = [
-    "Akwarela",
     "Recca",
     "Biel Mata Cornos",
     "Tinho",
@@ -18,12 +17,15 @@ $watchedPlayers = [
     "Drunken Master",
     "Hell",
     "Seba",
+    "Sumo",
+    "Radagast",
     "Taco",
     "Bender",
     "Time Lord",
     "Doctor Phlox",
     "Frank Gallagher",
-    "Beverly Crusher"
+    "Beverly Crusher",
+    "Geordi La Forge"
 ];
 
 // File to store last notification times
