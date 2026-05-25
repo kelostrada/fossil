@@ -1,0 +1,364 @@
+<?php
+require_once 'config.php';
+
+$pageTitle = 'Character Stats - Fossil Stats';
+
+// Get default name from GET parameter (if any)
+$defaultName = isset($_GET['name']) ? $_GET['name'] : "";
+
+// Extra head content for Chart.js
+$extraHead = '
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+';
+
+// Get database connection
+$conn = getDatabaseConnection();
+
+// Function to get character vocation
+function getCharacterVocation($conn, $name) {
+    $stmt = $conn->prepare("SELECT vocation FROM character_vocations WHERE name = ?");
+    $stmt->bind_param("s", $name);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    return $result->fetch_assoc()['vocation'] ?? 'Unknown';
+}
+
+// Function to get latest scores
+function getLatestScores($conn, $name) {
+    $stmt = $conn->prepare("
+        SELECT s1.type, s1.score
+        FROM scores s1
+        INNER JOIN (
+            SELECT type, MAX(timestamp) AS max_time
+            FROM scores
+            WHERE name = ?
+            GROUP BY type
+        ) s2 ON s1.type = s2.type AND s1.timestamp = s2.max_time AND s1.name = ?
+        ORDER BY s1.type
+    ");
+    $stmt->bind_param("ss", $name, $name);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    $scores = [];
+    while ($row = $result->fetch_assoc()) {
+        $scores[(int)$row['type']] = (int)$row['score'];
+    }
+    return $scores;
+}
+
+// Function to get death history
+function getDeathHistory($conn, $name) {
+    $stmt = $conn->prepare("
+        SELECT death_time, level, killed_by, is_player
+        FROM character_deaths
+        WHERE character_name = ?
+        ORDER BY death_time DESC
+    ");
+    $stmt->bind_param("s", $name);
+    $stmt->execute();
+    return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+}
+
+// Function to get frag history
+function getFragHistory($conn, $name) {
+    $stmt = $conn->prepare("
+        SELECT death_time as time, character_name as victim, level
+        FROM character_deaths
+        WHERE killed_by = ? AND is_player = 1
+        ORDER BY death_time DESC
+    ");
+    $stmt->bind_param("s", $name);
+    $stmt->execute();
+    return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+}
+
+// Get data if character name is provided
+$vocation = '';
+$latestScores = [];
+$deaths = [];
+$frags = [];
+if ($defaultName) {
+    $vocation = getCharacterVocation($conn, $defaultName);
+    $latestScores = getLatestScores($conn, $defaultName);
+    $deaths = getDeathHistory($conn, $defaultName);
+    $frags = getFragHistory($conn, $defaultName);
+}
+
+ob_start();
+?>
+
+<div class="container mx-auto p-4">
+    <?php if ($defaultName): ?>
+        <div class="bg-white p-4 rounded shadow-md max-w-5xl mx-auto mb-6">
+            <h1 class="text-2xl font-bold text-gray-800">
+                <?php echo htmlspecialchars($defaultName); ?>
+                <?php if (isset($latestScores[7])): ?>
+                    <span class="text-gray-600 font-normal text-base">Level <?php echo number_format($latestScores[7]); ?></span>
+                <?php endif; ?>
+            </h1>
+            <?php if ($vocation !== 'Unknown'): ?>
+                <div class="text-sm text-gray-600 mt-1"><?php echo htmlspecialchars($vocation); ?></div>
+            <?php endif; ?>
+        </div>
+    <?php endif; ?>
+
+    <!-- Chart section with filters -->
+    <div class="mt-6 bg-white p-6 rounded shadow-md">
+        <div class="flex flex-wrap items-center gap-4 mb-6">
+            <div class="flex items-center space-x-2">
+                <label for="startDate" class="text-gray-700 font-semibold text-sm">Start Date:</label>
+                <input type="date" id="startDate" name="startDate" class="border border-gray-300 p-2 rounded text-sm">
+            </div>
+            <div class="flex items-center space-x-2">
+                <label for="endDate" class="text-gray-700 font-semibold text-sm">End Date:</label>
+                <input type="date" id="endDate" name="endDate" class="border border-gray-300 p-2 rounded text-sm">
+            </div>
+            <button type="button" id="updateChart" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded text-sm">
+                Update Chart
+            </button>
+        </div>
+        <div style="height: 400px;">
+            <canvas id="onlineChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Scores section -->
+    <?php if (!empty($latestScores)): ?>
+        <div class="mt-6 bg-white p-6 rounded shadow-md max-w-3xl mx-auto">
+            <h2 class="text-lg md:text-xl font-bold mb-4 text-gray-800">Latest Skills</h2>
+            <table class="min-w-full table-auto border-collapse border border-gray-300">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="border border-gray-300 px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Skill</th>
+                        <th class="border border-gray-300 px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Score</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($GLOBALS['skillNames'] as $type => $skillName): ?>
+                        <tr class="hover:bg-gray-50">
+                            <td class="border border-gray-300 px-4 py-2 text-xs md:text-sm"><?= htmlspecialchars($skillName) ?></td>
+                            <td class="border border-gray-300 px-4 py-2 text-xs md:text-sm"><?= isset($latestScores[$type]) ? number_format($latestScores[$type]) : 'n/a' ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    <?php endif; ?>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Deaths section -->
+        <div class="mt-6 bg-white p-6 rounded shadow-md h-full">
+            <h2 class="text-lg md:text-xl font-bold mb-4 text-gray-800">Death History</h2>
+            <?php if (empty($deaths)): ?>
+                <p class="text-gray-500 text-xs md:text-sm text-center">No deaths recorded.</p>
+            <?php else: ?>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full table-auto border-collapse border border-gray-300">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="border border-gray-300 px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Time</th>
+                                <th class="border border-gray-300 px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Level</th>
+                                <th class="border border-gray-300 px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Cause</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($deaths as $death): ?>
+                                <tr class="hover:bg-gray-50">
+                                    <td class="border border-gray-300 px-4 py-2 text-xs md:text-sm">
+                                        <?= date('Y-m-d H:i', strtotime($death['death_time'])) ?>
+                                    </td>
+                                    <td class="border border-gray-300 px-4 py-2 text-xs md:text-sm">
+                                        Level <?= (int)$death['level'] ?>
+                                    </td>
+                                    <td class="border border-gray-300 px-4 py-2 text-xs md:text-sm">
+                                        Killed by 
+                                        <?php if ($death['is_player']): ?>
+                                            <a href="chart.php?name=<?= urlencode($death['killed_by']) ?>" class="text-blue-600 hover:underline">
+                                                <?= htmlspecialchars($death['killed_by']) ?>
+                                            </a>
+                                        <?php else: ?>
+                                            <?= htmlspecialchars($death['killed_by']) ?>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php endif; ?>
+        </div>
+
+        <!-- Frags section -->
+        <div class="mt-6 bg-white p-6 rounded shadow-md h-full">
+            <h2 class="text-lg md:text-xl font-bold mb-4 text-gray-800">Frag History</h2>
+            <?php if (empty($frags)): ?>
+                <p class="text-gray-500 text-xs md:text-sm text-center">No frags recorded.</p>
+            <?php else: ?>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full table-auto border-collapse border border-gray-300">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="border border-gray-300 px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Time</th>
+                                <th class="border border-gray-300 px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Victim</th>
+                                <th class="border border-gray-300 px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Level</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($frags as $frag): ?>
+                                <tr class="hover:bg-gray-50">
+                                    <td class="border border-gray-300 px-4 py-2 text-xs md:text-sm">
+                                        <?= date('Y-m-d H:i', strtotime($frag['time'])) ?>
+                                    </td>
+                                    <td class="border border-gray-300 px-4 py-2 text-xs md:text-sm">
+                                        <a href="chart.php?name=<?= urlencode($frag['victim']) ?>" class="text-blue-600 hover:underline">
+                                            <?= htmlspecialchars($frag['victim']) ?>
+                                        </a>
+                                    </td>
+                                    <td class="border border-gray-300 px-4 py-2 text-xs md:text-sm">
+                                        Level <?= (int)$frag['level'] ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>
+
+<?php
+$content = ob_get_clean();
+
+// Extra scripts for chart functionality
+$extraScripts = '
+<script>
+    // Expose defaultName from PHP to JavaScript
+    var defaultName = ' . json_encode($defaultName) . ';
+
+    document.addEventListener("DOMContentLoaded", function() {
+        // Set default date range: start date one month ago and end date today
+        var today = new Date();
+        var oneMonthAgo = new Date();
+        oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+        document.getElementById("startDate").value = oneMonthAgo.toISOString().substring(0, 10);
+        document.getElementById("endDate").value = today.toISOString().substring(0, 10);
+
+        var startDateInput = document.getElementById("startDate");
+        var endDateInput = document.getElementById("endDate");
+        var updateChartButton = document.getElementById("updateChart");
+
+        // If a default name was provided, fetch chart data
+        if (defaultName) {
+            fetchChartData();
+        }
+
+        // Update chart button click handler
+        updateChartButton.addEventListener("click", function() {
+            fetchChartData();
+        });
+
+        // Function to fetch data and update the chart
+        function fetchChartData() {
+            if (!defaultName) return;
+            
+            // Construct query string parameters
+            var queryParams = "person=" + encodeURIComponent(defaultName);
+            if(startDateInput.value) {
+                queryParams += "&startDate=" + encodeURIComponent(startDateInput.value);
+            }
+            if(endDateInput.value) {
+                queryParams += "&endDate=" + encodeURIComponent(endDateInput.value);
+            }
+            
+            // Fetch data for the selected person and date range from PHP
+            fetch("getData.php?" + queryParams)
+                .then(response => response.json())
+                .then(data => {
+                    updateChart(data);
+                });
+        }
+
+        // Function to update the chart
+        function updateChart(data) {
+            var canvas = document.getElementById("onlineChart");
+            var ctx = canvas.getContext("2d");
+
+            // Clear previous chart if any
+            if (window.onlineChart && window.onlineChart.destroy) {
+                window.onlineChart.destroy();
+            }
+
+            // Get the current timestamp and include it in the data
+            var currentTime = new Date().getTime();
+            data.timestamps.push(currentTime);
+            data.onlineTime.push(null);
+
+            // Create a new chart with an enhanced legend
+            window.onlineChart = new Chart(ctx, {
+                type: "line",
+                data: {
+                    labels: data.timestamps,
+                    datasets: [{
+                        label: "Online Time",
+                        data: data.onlineTime,
+                        borderColor: "blue",
+                        backgroundColor: "rgba(54, 162, 235, 0.2)",
+                        fill: false,
+                        spanGaps: 1000 * 60 * 1 + 1000 * 5,
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: "top",
+                            labels: {
+                                font: {
+                                    size: 16,
+                                    weight: "bold"
+                                },
+                                color: "#333",
+                                padding: 20,
+                            },
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: "time",
+                            time: {
+                                unit: "day"
+                            },
+                            title: {
+                                display: true,
+                                text: "Time",
+                                font: {
+                                    size: 14,
+                                    weight: "bold"
+                                }
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: "Level",
+                                font: {
+                                    size: 14,
+                                    weight: "bold"
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    });
+</script>
+';
+
+require_once 'templates/layout.php';
+?>
