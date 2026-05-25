@@ -117,7 +117,8 @@ $extraHead = (isset($extraHead) ? $extraHead : '') . '
                             'recent_deaths.php' => 'Recent Deaths',
                             'highscores.php' => 'Highscores',
                             'playerkillers.php' => 'Player Killers',
-                            'environmental_killers.php' => 'Environmental Killers'
+                            'environmental_killers.php' => 'Environmental Killers',
+                            'calculators.php' => 'Calculators'
                         ];
                         
                         $currentPage = basename($_SERVER['PHP_SELF']);
