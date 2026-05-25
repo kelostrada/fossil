@@ -1,6 +1,6 @@
 # Fossil Stats
 
-A PHP-based statistics tracker and web frontend for the [Fossil](https://fossil.servebeer.com/) private game server. It scrapes data from the official server site, stores it in MySQL, and exposes a Tailwind-styled dashboard for browsing highscores, online presence, deaths, and player activity over time.
+A PHP-based statistics tracker and web frontend for the [Fossil](http://fossil-legacy.com/) private game server. It scrapes data from the official server site, stores it in MySQL, and exposes a Tailwind-styled dashboard for browsing highscores, online presence, deaths, and player activity over time.
 
 Live instance: <https://fossil.kelostrada.pl/>
 

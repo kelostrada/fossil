@@ -21,7 +21,7 @@ if ($scrapeType == 'highscores') {
     $page = file_get_contents('page.txt');
     $type = file_get_contents('type.txt');
 
-    $contents = file_get_contents("https://fossil.servebeer.com/highscores.php?&type=$type&page=$page");
+    $contents = file_get_contents("http://fossil-legacy.com/highscores.php?&type=$type&page=$page");
     $scores = parseHighscoresTable($contents);
 
     storeScores($scores, $type);
@@ -40,7 +40,7 @@ if ($scrapeType == 'highscores') {
 }
 
 if ($scrapeType == 'online') {
-    $contents = file_get_contents("https://fossil.servebeer.com/online.php");
+    $contents = file_get_contents("http://fossil-legacy.com/online.php");
     $online = parseOnlineListTable($contents);
     echo json_encode($online);
 
@@ -106,7 +106,7 @@ if ($scrapeType == 'profiles') {
         file_put_contents('last_fetched_id.txt', $characterId);
 
         // Fetch character profile
-        $url = "https://fossil.servebeer.com/characterprofile.php?name=" . urlencode($characterName);
+        $url = "http://fossil-legacy.com/characterprofile.php?name=" . urlencode($characterName);
         $contents = file_get_contents($url);
 
         if ($contents) {
