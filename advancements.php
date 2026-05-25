@@ -20,12 +20,14 @@ ob_start();
     $sql = "
         SELECT 
             s1.name,
+            cv.vocation,
             s1.type,
             s1.score AS new_score,
             s1.timestamp AS new_timestamp,
             s2.score AS old_score
         FROM scores s1
         JOIN scores s2 ON s1.name = s2.name AND s1.type = s2.type AND s2.timestamp < s1.timestamp
+        JOIN character_vocations cv ON s1.name = cv.name
         WHERE NOT EXISTS (
             SELECT 1 FROM scores s3 
             WHERE s3.name = s1.name AND s3.type = s1.type AND s3.timestamp > s2.timestamp AND s3.timestamp < s1.timestamp
@@ -47,6 +49,7 @@ ob_start();
     echo "<thead class='bg-gray-50'>";
     echo "<tr>
             <th class='px-2 md:px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>Player</th>
+            <th class='px-2 md:px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>Vocation</th>
             <th class='px-2 md:px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>Skill</th>
             <th class='px-2 md:px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>Change</th>
             <th class='px-2 md:px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>Time</th>
@@ -58,6 +61,7 @@ ob_start();
         while ($row = $result->fetch_assoc()) {
             $rawName = $row['name'];
             $name = "<a href='chart.php?name=" . urlencode($rawName) . "' class='text-blue-600 hover:underline'>" . htmlspecialchars($rawName) . "</a>";
+            $vocation   = $row['vocation'];
             $skill      = $skillMap[(int)$row["type"]] ?? "Unknown";
             $newScore   = (int)$row["new_score"];
             $oldScore   = (int)$row["old_score"];
@@ -70,6 +74,7 @@ ob_start();
 
             echo "<tr class='hover:bg-gray-50'>
                     <td class='px-2 md:px-4 py-1.5 md:py-3 whitespace-nowrap text-xs md:text-sm font-medium text-gray-900'>$name</td>
+                    <td class='px-2 md:px-4 py-1.5 md:py-3 whitespace-nowrap text-xs md:text-sm text-gray-500'>$vocation</td>
                     <td class='px-2 md:px-4 py-1.5 md:py-3 whitespace-nowrap text-xs md:text-sm text-gray-500'>$skill</td>
                     <td class='px-2 md:px-4 py-1.5 md:py-3 whitespace-nowrap text-xs md:text-sm $colorClass'>$change</td>
                     <td class='px-2 md:px-4 py-1.5 md:py-3 whitespace-nowrap text-xs md:text-sm text-gray-500'>$time</td>

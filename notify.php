@@ -6,7 +6,9 @@ $conn = getDatabaseConnection();
 
 // Players to watch (case sensitive)
 $watchedPlayers = [
-    "Akwarela",
+    "REDACTED",
+    "REDACTED",
+    "REDACTED",
     "REDACTED",
     "REDACTED",
     "REDACTED",
