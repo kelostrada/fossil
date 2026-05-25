@@ -1,0 +1,8 @@
+.env
+page.txt
+type.txt
+*.log
+notified_logins.json
+vendor/
+.DS_Store
+last_fetched_id.txt 
