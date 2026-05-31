@@ -274,6 +274,7 @@ const SPELLS = [
     { name: 'Creature Illusion',      inc: 'utevo res ina "monster"',  mana: 100,  ml: 10, voc: 'S/D' },
     { name: 'Energy Beam',            inc: 'exevo vis lux',            mana: 100,  ml: 10, voc: 'S',       dmg: { min: 40,  max: 80,  type: 'dmg'  } },
     { name: 'Explosive Arrow',        inc: 'exevo con flam',           mana: 120,  ml: 10, voc: 'P' },
+    { name: 'Burst Arrow',            inc: '(ammo)',                   mana: null, ml: 0,  voc: 'P',       dmg: { min: 0,   max: 60,  type: 'dmg'  } },
     { name: 'Convince Creature',      inc: 'adeta sio',                mana: 100,  ml: 10, voc: 'D' },
     { name: 'Ultimate Healing Rune',  inc: 'adura vita',               mana: 100,  ml: 11, voc: 'D',       dmg: { min: 250, max: 250, type: 'heal' } },
     { name: 'Chameleon',              inc: 'adevo ina',                mana: 150,  ml: 11, voc: 'D' },
@@ -320,7 +321,7 @@ function calcDamage() {
                 <td class="px-2 py-1.5 text-sm text-right text-gray-300">—</td>
                 <td class="px-2 py-1.5 text-sm text-right text-gray-300">—</td>`;
         }
-        const manaCell = s.mana === null ? '?' : s.mana;
+        const manaCell = s.mana === null ? '—' : s.mana;
         rows += `
             <tr class="border-t border-gray-100 hover:bg-gray-50">
                 <td class="px-2 py-1.5 text-sm font-medium">${s.name}</td>
