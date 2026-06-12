@@ -16,6 +16,16 @@ $extraHead = (isset($extraHead) ? $extraHead : '') . '
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($pageTitle); ?></title>
+    <!-- Apply dark mode before render to avoid flash -->
+    <script>
+        (function() {
+            try {
+                if (localStorage.getItem('theme') === 'dark') {
+                    document.documentElement.classList.add('dark');
+                }
+            } catch (e) {}
+        })();
+    </script>
     <!-- Tailwind CSS -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <!-- Alpine.js for mobile menu toggle -->
@@ -73,6 +83,73 @@ $extraHead = (isset($extraHead) ? $extraHead : '') . '
             color: white !important;
             margin: 0 !important;
         }
+
+        /* Dark mode overrides */
+        html.dark body { background-color: #111827 !important; color: #e5e7eb; }
+        html.dark .bg-white { background-color: #1f2937 !important; }
+        html.dark .bg-gray-50 { background-color: #1f2937 !important; }
+        html.dark .bg-gray-100 { background-color: #111827 !important; }
+        html.dark .bg-gray-800 { background-color: #0b1220 !important; }
+        html.dark .bg-blue-50 { background-color: #172554 !important; }
+        html.dark .bg-blue-100 { background-color: #1e3a8a !important; }
+        html.dark .bg-yellow-50 { background-color: #422006 !important; }
+        html.dark .bg-green-200 { background-color: #064e3b !important; }
+
+        html.dark .text-gray-300 { color: #d1d5db !important; }
+        html.dark .text-gray-400 { color: #cbd5e1 !important; }
+        html.dark .text-gray-500 { color: #cbd5e1 !important; }
+        html.dark .text-gray-600 { color: #d1d5db !important; }
+        html.dark .text-gray-700 { color: #e5e7eb !important; }
+        html.dark .text-gray-800 { color: #f3f4f6 !important; }
+        html.dark .text-gray-900 { color: #f9fafb !important; }
+        html.dark .text-blue-700 { color: #93c5fd !important; }
+        html.dark .text-blue-800 { color: #bfdbfe !important; }
+
+        html.dark .border-gray-100 { border-color: #374151 !important; }
+        html.dark .border-gray-200 { border-color: #374151 !important; }
+        html.dark .border-gray-300 { border-color: #4b5563 !important; }
+
+        html.dark .hover\:bg-gray-100:hover { background-color: #374151 !important; }
+        html.dark .hover\:text-gray-900:hover { color: #ffffff !important; }
+        html.dark .shadow-lg, html.dark .shadow, html.dark .shadow-md {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.6), 0 2px 4px -1px rgba(0, 0, 0, 0.4) !important;
+        }
+        html.dark input, html.dark select, html.dark textarea {
+            background-color: #1f2937 !important;
+            color: #e5e7eb !important;
+            border-color: #4b5563 !important;
+        }
+        html.dark table { color: #e5e7eb; }
+        html.dark .ui-autocomplete { background: #1f2937; border-color: #4b5563; color: #e5e7eb; }
+        html.dark .ui-menu-item { border-bottom-color: #374151; }
+
+        .theme-toggle {
+            display: inline-flex;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+        .theme-toggle-track {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background-color: #d1d5db;
+            border-radius: 9999px;
+            transition: background-color 0.2s;
+        }
+        html.dark .theme-toggle-track { background-color: #2563eb; }
+        .theme-toggle-thumb {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background-color: #ffffff;
+            border-radius: 9999px;
+            transition: transform 0.2s;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+        html.dark .theme-toggle-thumb { transform: translateX(20px); }
     </style>
 </head>
 <body class="bg-gray-100 font-sans" x-data="{ mobileMenuOpen: false }">
@@ -98,7 +175,16 @@ $extraHead = (isset($extraHead) ? $extraHead : '') . '
 
             <div class="p-6">
                 <h1 class="text-2xl font-bold text-gray-800 mb-4">Fossil Stats</h1>
-                
+
+                <!-- Dark mode toggle -->
+                <label class="theme-toggle mb-4" for="themeToggle">
+                    <span class="text-sm text-gray-700 mr-3">Dark mode</span>
+                    <span class="theme-toggle-track">
+                        <input type="checkbox" id="themeToggle" class="sr-only">
+                        <span class="theme-toggle-thumb"></span>
+                    </span>
+                </label>
+
                 <!-- Search input -->
                 <div class="mb-6">
                     <input type="text" 
@@ -172,6 +258,25 @@ $extraHead = (isset($extraHead) ? $extraHead : '') . '
     </div>
 
     <?php if (isset($extraScripts)) echo $extraScripts; ?>
+
+    <!-- Dark mode toggle wiring -->
+    <script>
+    (function() {
+        const toggle = document.getElementById('themeToggle');
+        if (!toggle) return;
+        const isDark = document.documentElement.classList.contains('dark');
+        toggle.checked = isDark;
+        toggle.addEventListener('change', function() {
+            if (toggle.checked) {
+                document.documentElement.classList.add('dark');
+                try { localStorage.setItem('theme', 'dark'); } catch (e) {}
+            } else {
+                document.documentElement.classList.remove('dark');
+                try { localStorage.setItem('theme', 'light'); } catch (e) {}
+            }
+        });
+    })();
+    </script>
 
     <!-- Initialize autocomplete -->
     <script>
