@@ -1,57 +1,73 @@
 <?php
 require_once 'config.php';
 
-// Get database connection
 $conn = getDatabaseConnection();
 
-// Get selected person from the URL parameter
-$selectedPerson = $_GET['person'];
+$selectedPerson = isset($_GET['person']) ? $_GET['person'] : '';
 
-// Get start and end dates from URL parameters, or default if not provided
+// Date range (default: last month)
 $startDate = isset($_GET['startDate']) ? $_GET['startDate'] : date("Y-m-d", strtotime("-1 month"));
-$endDate = isset($_GET['endDate']) ? $_GET['endDate'] : date("Y-m-d");
-
-// Append time components to cover the entire days
+$endDate   = isset($_GET['endDate'])   ? $_GET['endDate']   : date("Y-m-d");
 $startDateTime = $startDate . ' 00:00:00';
-$endDateTime = $endDate . ' 23:59:59';
+$endDateTime   = $endDate   . ' 23:59:59';
 
-// Prepare SQL statement to fetch data for the selected person within the specified date range
-$sql = "SELECT online_time, level FROM online_results WHERE name = ? AND online_time BETWEEN ? AND ?";
+$data = ['timestamps' => [], 'onlineTime' => []];
 
-// Prepare and bind parameters
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("sss", $selectedPerson, $startDateTime, $endDateTime);
-
-// Execute query
-$stmt->execute();
-
-// Store result
-$stmt->store_result();
-
-// Bind result variables
-$stmt->bind_result($onlineTime, $level);
-
-// Array to store data
-$data = array(
-    'timestamps' => array(),
-    'onlineTime' => array(),
-);
-
-// Fetch data
-while ($stmt->fetch()) {
-    // Convert timestamp to milliseconds
-    $timestamp = strtotime($onlineTime) * 1000;
-
-    // Add data to arrays
-    $data['timestamps'][] = $timestamp;
-    $data['onlineTime'][] = $level;
+if ($selectedPerson === '') {
+    header('Content-Type: application/json');
+    echo json_encode($data);
+    exit;
 }
 
-// Close statement and connection
-$stmt->close();
+// online_results holds one row per recorded online minute, so an active
+// player over a long range can have 100k+ rows — far too many points to plot.
+// Pick a granularity from the range: raw for short ranges, hourly for medium,
+// daily for long. (Bucket expression is a constant, not user input.)
+$rangeDays = (strtotime($endDateTime) - strtotime($startDateTime)) / 86400;
+if ($rangeDays <= 10) {
+    $bucket = null;                                              // raw points
+} elseif ($rangeDays <= 92) {
+    $bucket = "DATE_FORMAT(online_time, '%Y-%m-%d %H:00:00')";   // hourly
+} else {
+    $bucket = "DATE(online_time)";                              // daily
+}
+
+if ($bucket === null) {
+    $sql = "SELECT online_time, level
+            FROM online_results
+            WHERE name = ? AND online_time BETWEEN ? AND ?
+            ORDER BY online_time";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("sss", $selectedPerson, $startDateTime, $endDateTime);
+    $stmt->execute();
+    $stmt->bind_result($onlineTime, $level);
+    while ($stmt->fetch()) {
+        $data['timestamps'][] = strtotime($onlineTime) * 1000;
+        $data['onlineTime'][] = (int)$level;
+    }
+    $stmt->close();
+} else {
+    // One representative point per bucket: the level at the most recent
+    // reading in that bucket. SUBSTRING_INDEX(...,1) takes the first value
+    // of the DESC-ordered concat, so group_concat truncation is irrelevant.
+    $sql = "SELECT MAX(online_time) AS t,
+                   CAST(SUBSTRING_INDEX(GROUP_CONCAT(level ORDER BY online_time DESC), ',', 1) AS UNSIGNED) AS lvl
+            FROM online_results
+            WHERE name = ? AND online_time BETWEEN ? AND ?
+            GROUP BY $bucket
+            ORDER BY t";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("sss", $selectedPerson, $startDateTime, $endDateTime);
+    $stmt->execute();
+    $stmt->bind_result($t, $lvl);
+    while ($stmt->fetch()) {
+        $data['timestamps'][] = strtotime($t) * 1000;
+        $data['onlineTime'][] = (int)$lvl;
+    }
+    $stmt->close();
+}
+
 $conn->close();
 
-// Return data as JSON
 header('Content-Type: application/json');
 echo json_encode($data);
-?>

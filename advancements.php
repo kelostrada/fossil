@@ -16,28 +16,23 @@ ob_start();
     <?php echo render_page_header('Recent Skill Changes'); ?>
 
     <?php
-    // Query recent advancements - last 20 records where a player's skill level increased
+    // Most recent score change per (name, type): compare each player's latest
+    // reading to the one immediately before it. A single windowed pass replaces
+    // the old correlated double-NOT-EXISTS query.
     $sql = "
-        SELECT 
-            s1.name,
-            cv.vocation,
-            s1.type,
-            s1.score AS new_score,
-            s1.timestamp AS new_timestamp,
-            s2.score AS old_score
-        FROM scores s1
-        JOIN scores s2 ON s1.name = s2.name AND s1.type = s2.type AND s2.timestamp < s1.timestamp
-        JOIN character_vocations cv ON s1.name = cv.name
-        WHERE NOT EXISTS (
-            SELECT 1 FROM scores s3 
-            WHERE s3.name = s1.name AND s3.type = s1.type AND s3.timestamp > s2.timestamp AND s3.timestamp < s1.timestamp
-        )
-        AND NOT EXISTS (
-            SELECT 1 FROM scores s4 
-            WHERE s4.name = s1.name AND s4.type = s1.type AND s4.timestamp > s1.timestamp
-        )
-        AND s1.score != s2.score
-        ORDER BY s1.timestamp DESC
+        SELECT r.name, cv.vocation, r.type,
+               r.score AS new_score, r.timestamp AS new_timestamp, r.prev_score AS old_score
+        FROM (
+            SELECT name, type, score, timestamp,
+                   LAG(score)     OVER (PARTITION BY name, type ORDER BY timestamp)      AS prev_score,
+                   ROW_NUMBER()   OVER (PARTITION BY name, type ORDER BY timestamp DESC) AS rn
+            FROM scores
+        ) r
+        JOIN character_vocations cv ON cv.name = r.name
+        WHERE r.rn = 1
+          AND r.prev_score IS NOT NULL
+          AND r.score <> r.prev_score
+        ORDER BY r.new_timestamp DESC
         LIMIT 50;
     ";
 

@@ -18,26 +18,38 @@ $selectedType = isset($_GET['type']) ? (int)$_GET['type'] : 7;
 // Get the selected vocation from URL parameter (for mobile view)
 $selectedVocation = isset($_GET['vocation']) ? $_GET['vocation'] : $vocations[0];
 
-// Function to get top players for a specific skill type and vocation
-function getTopPlayers($conn, $type, $vocation, $limit = 500) {
-    $sql = "SELECT s.name, s.score, cv.vocation, s.timestamp
+// Fetch top players for a skill type across ALL vocations in one query, then
+// group in PHP. A derived "latest timestamp per name" table replaces the old
+// per-row correlated subquery, and one query serves all five vocation columns.
+function getTopPlayersByVocation($conn, $type, $limit = 500) {
+    $sql = "SELECT s.name, s.score, cv.vocation
             FROM scores s
-            JOIN character_vocations cv ON s.name = cv.name
-            WHERE s.type = ? AND cv.vocation = ?
-            AND s.timestamp = (
-                SELECT MAX(timestamp)
-                FROM scores s2
-                WHERE s2.name = s.name AND s2.type = s.type
-            )
-            ORDER BY s.score DESC
-            LIMIT ?";
-    
+            JOIN character_vocations cv ON cv.name = s.name
+            JOIN (
+                SELECT name, MAX(timestamp) AS mt
+                FROM scores
+                WHERE type = ?
+                GROUP BY name
+            ) latest ON latest.name = s.name AND latest.mt = s.timestamp
+            WHERE s.type = ?
+            ORDER BY s.score DESC";
+
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("isi", $type, $vocation, $limit);
+    $stmt->bind_param("ii", $type, $type);
     $stmt->execute();
     $result = $stmt->get_result();
-    
-    return $result->fetch_all(MYSQLI_ASSOC);
+
+    $byVocation = [];
+    while ($row = $result->fetch_assoc()) {
+        $voc = $row['vocation'];
+        if (!isset($byVocation[$voc])) {
+            $byVocation[$voc] = [];
+        }
+        if (count($byVocation[$voc]) < $limit) {
+            $byVocation[$voc][] = $row;
+        }
+    }
+    return $byVocation;
 }
 
 ob_start();
@@ -45,6 +57,7 @@ ob_start();
 
 <div class="page-container">
     <?php echo render_page_header('Highscores'); ?>
+    <?php $topByVocation = getTopPlayersByVocation($conn, $selectedType); ?>
 
     <!-- Skill Type Navigation -->
     <div class="flex flex-wrap justify-center gap-2 mb-6">
@@ -71,32 +84,32 @@ ob_start();
     <!-- Mobile View (Single Vocation) -->
     <div class="lg:hidden">
         <div class="bg-white rounded-lg shadow-md overflow-hidden">
-            <div class="bg-gray-800 text-white px-4 py-2 font-semibold">
-                <?= htmlspecialchars($selectedVocation) ?> - <?= htmlspecialchars($skillNames[$selectedType]) ?>
+            <div class="section-header px-4 py-2 font-semibold">
+                <?= htmlspecialchars($selectedVocation) ?>
             </div>
             <div class="p-4">
-                <table class="w-full">
+                <table class="w-full table-fixed">
                     <thead>
                         <tr class="text-left text-sm text-gray-600">
-                            <th class="pb-2">#</th>
+                            <th class="pb-2 w-8">#</th>
                             <th class="pb-2">Name</th>
-                            <th class="pb-2 text-right">Score</th>
+                            <th class="pb-2 text-right w-16">Score</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php 
-                        $players = getTopPlayers($conn, $selectedType, $selectedVocation);
-                        foreach ($players as $index => $player): 
+                        <?php
+                        $players = $topByVocation[$selectedVocation] ?? [];
+                        foreach ($players as $index => $player):
                         ?>
                             <tr class="border-t border-gray-100">
-                                <td class="py-2 text-sm text-gray-500"><?= $index + 1 ?></td>
-                                <td class="py-2">
-                                    <a href="chart.php?name=<?= urlencode($player['name']) ?>" 
+                                <td class="py-2 pr-2 text-sm text-gray-500 align-top"><?= $index + 1 ?></td>
+                                <td class="py-2 align-top break-words">
+                                    <a href="chart.php?name=<?= urlencode($player['name']) ?>"
                                        class="hover:underline text-blue-600">
                                         <?= htmlspecialchars($player['name']) ?>
                                     </a>
                                 </td>
-                                <td class="py-2 text-right font-medium">
+                                <td class="py-2 text-right font-medium align-top whitespace-nowrap">
                                     <?= number_format($player['score']) ?>
                                 </td>
                             </tr>
@@ -118,32 +131,32 @@ ob_start();
     <div class="hidden lg:grid lg:grid-cols-5 gap-6">
         <?php foreach ($vocations as $vocation): ?>
             <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                <div class="bg-gray-800 text-white px-4 py-2 font-semibold">
-                    <?= htmlspecialchars($vocation) ?> - <?= htmlspecialchars($skillNames[$selectedType]) ?>
+                <div class="section-header px-4 py-2 font-semibold">
+                    <?= htmlspecialchars($vocation) ?>
                 </div>
                 <div class="p-4">
-                    <table class="w-full">
+                    <table class="w-full table-fixed">
                         <thead>
                             <tr class="text-left text-sm text-gray-600">
-                                <th class="pb-2">#</th>
+                                <th class="pb-2 w-8">#</th>
                                 <th class="pb-2">Name</th>
-                                <th class="pb-2 text-right">Score</th>
+                                <th class="pb-2 text-right w-16">Score</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php 
-                            $players = getTopPlayers($conn, $selectedType, $vocation);
-                            foreach ($players as $index => $player): 
+                            <?php
+                            $players = $topByVocation[$vocation] ?? [];
+                            foreach ($players as $index => $player):
                             ?>
                                 <tr class="border-t border-gray-100">
-                                    <td class="py-2 text-sm text-gray-500"><?= $index + 1 ?></td>
-                                    <td class="py-2">
-                                        <a href="chart.php?name=<?= urlencode($player['name']) ?>" 
+                                    <td class="py-2 pr-2 text-sm text-gray-500 align-top"><?= $index + 1 ?></td>
+                                    <td class="py-2 align-top break-words">
+                                        <a href="chart.php?name=<?= urlencode($player['name']) ?>"
                                            class="hover:underline text-blue-600">
                                             <?= htmlspecialchars($player['name']) ?>
                                         </a>
                                     </td>
-                                    <td class="py-2 text-right font-medium">
+                                    <td class="py-2 text-right font-medium align-top whitespace-nowrap">
                                         <?= number_format($player['score']) ?>
                                     </td>
                                 </tr>
