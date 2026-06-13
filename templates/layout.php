@@ -30,10 +30,10 @@ $extraHead = (isset($extraHead) ? $extraHead : '') . '
             }
         })();
     </script>
-    <!-- Fonts referenced by the design themes -->
+    <!-- Distinctive fonts used by the design themes -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&family=Roboto:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;600;700&family=Archivo+Black&family=Baloo+2:wght@500;700&family=DM+Serif+Display&family=Fraunces:ital,wght@0,600;1,600&family=Jost:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&family=Karla:wght@400;600;700&family=Marcellus&family=Newsreader:ital@0;1&family=Orbitron:wght@600;800&family=Quicksand:wght@400;500;700&family=Rajdhani:wght@400;500;600;700&family=VT323&display=swap" rel="stylesheet">
     <!-- Tailwind CSS -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <!-- Design theme system (8 designs x light/dark) -->
