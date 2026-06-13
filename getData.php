@@ -5,8 +5,8 @@ $conn = getDatabaseConnection();
 
 $selectedPerson = isset($_GET['person']) ? $_GET['person'] : '';
 
-// Date range (default: last month)
-$startDate = isset($_GET['startDate']) ? $_GET['startDate'] : date("Y-m-d", strtotime("-1 month"));
+// Date range (default: last two years)
+$startDate = isset($_GET['startDate']) ? $_GET['startDate'] : date("Y-m-d", strtotime("-2 years"));
 $endDate   = isset($_GET['endDate'])   ? $_GET['endDate']   : date("Y-m-d");
 $startDateTime = $startDate . ' 00:00:00';
 $endDateTime   = $endDate   . ' 23:59:59';
