@@ -319,6 +319,34 @@ $extraScripts = '
                 });
         }
 
+        // Read theme colors from the active design so the chart matches.
+        function themeColors() {
+            var cs = getComputedStyle(document.documentElement);
+            function v(name, fallback) {
+                var val = cs.getPropertyValue(name).trim();
+                return val || fallback;
+            }
+            var accent = v("--accent", "#2563eb");
+            function fill(hex) {
+                var m = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(hex);
+                if (!m) return "rgba(37,99,235,0.15)";
+                var h = m[1];
+                if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+                var r = parseInt(h.substring(0, 2), 16),
+                    g = parseInt(h.substring(2, 4), 16),
+                    b = parseInt(h.substring(4, 6), 16);
+                return "rgba(" + r + "," + g + "," + b + ",0.14)";
+            }
+            return {
+                accent: accent,
+                accentFill: fill(accent),
+                text: v("--text-secondary", "#4b5563"),
+                grid: v("--border", "#e5e7eb"),
+                surface: v("--bg-surface", "#ffffff"),
+                font: cs.getPropertyValue("--font").trim() || "sans-serif"
+            };
+        }
+
         // Function to update the chart
         function updateChart(data) {
             var canvas = document.getElementById("onlineChart");
@@ -329,66 +357,62 @@ $extraScripts = '
                 window.onlineChart.destroy();
             }
 
-            // Get the current timestamp and include it in the data
+            // Extend the axis to "now" without drawing a point.
             var currentTime = new Date().getTime();
             data.timestamps.push(currentTime);
             data.onlineTime.push(null);
 
-            // Create a new chart with an enhanced legend
+            var c = themeColors();
+            Chart.defaults.font.family = c.font;
+            Chart.defaults.color = c.text;
+
             window.onlineChart = new Chart(ctx, {
                 type: "line",
                 data: {
                     labels: data.timestamps,
                     datasets: [{
-                        label: "Online Time",
+                        label: "Level",
                         data: data.onlineTime,
-                        borderColor: "blue",
-                        backgroundColor: "rgba(54, 162, 235, 0.2)",
-                        fill: false,
-                        spanGaps: 1000 * 60 * 1 + 1000 * 5,
+                        borderColor: c.accent,
+                        backgroundColor: c.accentFill,
+                        pointRadius: 0,
+                        pointHoverRadius: 4,
+                        pointHoverBackgroundColor: c.accent,
+                        pointHoverBorderColor: c.surface,
+                        borderWidth: 2,
+                        tension: 0.25,
+                        fill: true,
+                        spanGaps: true
                     }]
                 },
                 options: {
                     maintainAspectRatio: false,
                     responsive: true,
+                    interaction: { mode: "index", intersect: false },
                     plugins: {
-                        legend: {
-                            display: true,
-                            position: "top",
-                            labels: {
-                                font: {
-                                    size: 16,
-                                    weight: "bold"
-                                },
-                                color: "#333",
-                                padding: 20,
-                            },
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: c.surface,
+                            titleColor: c.text,
+                            bodyColor: c.text,
+                            borderColor: c.grid,
+                            borderWidth: 1,
+                            padding: 10,
+                            displayColors: false
                         }
                     },
                     scales: {
                         x: {
                             type: "time",
-                            time: {
-                                unit: "day"
-                            },
-                            title: {
-                                display: true,
-                                text: "Time",
-                                font: {
-                                    size: 14,
-                                    weight: "bold"
-                                }
-                            }
+                            border: { display: false },
+                            grid: { color: c.grid },
+                            ticks: { color: c.text, maxRotation: 0, autoSkipPadding: 16 }
                         },
                         y: {
-                            title: {
-                                display: true,
-                                text: "Level",
-                                font: {
-                                    size: 14,
-                                    weight: "bold"
-                                }
-                            }
+                            border: { display: false },
+                            grid: { color: c.grid },
+                            ticks: { color: c.text },
+                            title: { display: true, text: "Level", color: c.text, font: { weight: "600" } }
                         }
                     }
                 }

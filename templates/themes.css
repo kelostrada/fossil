@@ -215,6 +215,13 @@ html[data-design="7"].dark { --hl-online-bg: #7aa353; --hl-online-text: #161d15;
 html[data-design="8"] { --hl-online-bg: #2f6f4f; --hl-online-text: #fbf7ec; }   /* deco emerald */
 html[data-design="8"].dark { --hl-online-bg: #3f8a64; --hl-online-text: #07211c; }
 
+/* ---- section header bar (e.g. highscores vocation columns) ---- */
+/* Uses the theme accent + its contrast so it's always legible — the old
+   bg-gray-800 + literal white text became unreadable in dark mode on themes
+   whose inverse surface is light (editorial, swiss, ...). */
+html[data-design] .section-header { background-color: var(--accent); color: var(--accent-contrast); }
+html[data-design] .section-header a { color: var(--accent-contrast); }
+
 /* ---- unified page scaffolding (shared by every page) ---- */
 html[data-design] .page-container { width: 100%; max-width: 72rem; margin-inline: auto; }
 html[data-design] .page-header { margin: 0 0 1.5rem; }
