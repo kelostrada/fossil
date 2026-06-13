@@ -321,7 +321,14 @@ function calcDamage() {
         rows += `
             <tr class="border-t border-gray-100 hover:bg-gray-50">
                 <td class="px-2 py-1.5 text-sm font-medium">${s.name}</td>
-                <td class="px-2 py-1.5 text-sm text-gray-500 font-mono whitespace-nowrap">${s.inc}</td>
+                <td class="px-2 py-1.5 text-sm text-gray-500 whitespace-nowrap">
+                    <span class="inline-flex items-center gap-2">
+                        <span class="font-mono">${s.inc}</span>
+                        <button type="button" class="copy-inc text-gray-400 hover:text-gray-700 focus:outline-none" data-inc="${s.inc}" title="Copy incantation" aria-label="Copy incantation">
+                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                        </button>
+                    </span>
+                </td>
                 <td class="px-2 py-1.5 text-sm text-right text-gray-500">${manaCell}</td>
                 <td class="px-2 py-1.5 text-sm text-right text-gray-500">${s.ml}</td>
                 <td class="px-2 py-1.5 text-sm text-gray-500 whitespace-nowrap">${s.voc}</td>
@@ -363,6 +370,33 @@ wire(['train-voc', 'train-skill', 'train-start', 'train-end', 'train-pct'], calc
 wire(['ml-voc', 'ml-start', 'ml-end', 'ml-pct'], calcMagic);
 wire(['dmg-lvl', 'dmg-mlvl'], calcDamage);
 calcTraining(); calcMagic(); calcDamage();
+
+// ===== Copy spell incantations to clipboard (delegated; rows re-render) =====
+(function () {
+    const CHECK = '<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>';
+    function fallbackCopy(text) {
+        const ta = document.createElement('textarea');
+        ta.value = text; ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); } catch (e) {}
+        document.body.removeChild(ta);
+    }
+    function flash(btn) {
+        const original = btn.innerHTML;
+        btn.innerHTML = CHECK;
+        btn.classList.add('text-green-600');
+        setTimeout(function () { btn.innerHTML = original; btn.classList.remove('text-green-600'); }, 1200);
+    }
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest('.copy-inc');
+        if (!btn) return;
+        const inc = btn.getAttribute('data-inc') || '';
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(inc).then(function () { flash(btn); }, function () { fallbackCopy(inc); flash(btn); });
+        } else { fallbackCopy(inc); flash(btn); }
+    });
+})();
 </script>
 
 <?php
