@@ -10,6 +10,7 @@ function uitest_mock_content(string $page): string
         case 'online':   return uitest_online();
         case 'killers':  return uitest_killers();
         case 'wide':     return uitest_wide_table();
+        case 'chart':    return uitest_chart();
         case 'dashboard':
         default:         return uitest_dashboard();
     }
@@ -105,6 +106,31 @@ function uitest_killers(): string
         <tbody>$rows</tbody>
       </table>
     </div>
+  </div>
+</div>
+HTML;
+}
+
+function uitest_chart(): string
+{
+    return <<<HTML
+<div class="container mx-auto p-4">
+  <div class="bg-white p-4 rounded shadow-md max-w-5xl mx-auto mb-6">
+    <div class="flex items-center flex-wrap gap-3">
+      <h1 class="text-2xl font-bold text-gray-800">Sir Kael <span class="text-gray-600 font-normal text-base">Level 482</span></h1>
+      <button type="button" title="Copy character name"
+              class="inline-flex items-center gap-1.5 text-sm border border-gray-300 rounded-md px-2.5 py-1 text-gray-600 hover:bg-gray-100 hover:text-gray-900">
+        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+        </svg>
+        <span class="copy-label">Copy</span>
+      </button>
+    </div>
+    <div class="text-sm text-gray-600 mt-1">Knight</div>
+  </div>
+  <div class="mt-6 bg-white p-6 rounded shadow-md">
+    <h2 class="text-lg md:text-xl font-bold mb-4 text-gray-800">Latest Skills</h2>
+    <p class="text-gray-600 text-sm">Chart would render here.</p>
   </div>
 </div>
 HTML;

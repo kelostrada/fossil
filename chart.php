@@ -92,16 +92,54 @@ ob_start();
 <div class="container mx-auto p-4">
     <?php if ($defaultName): ?>
         <div class="bg-white p-4 rounded shadow-md max-w-5xl mx-auto mb-6">
-            <h1 class="text-2xl font-bold text-gray-800">
-                <?php echo htmlspecialchars($defaultName); ?>
-                <?php if (isset($latestScores[7])): ?>
-                    <span class="text-gray-600 font-normal text-base">Level <?php echo number_format($latestScores[7]); ?></span>
-                <?php endif; ?>
-            </h1>
+            <div class="flex items-center flex-wrap gap-3">
+                <h1 class="text-2xl font-bold text-gray-800">
+                    <?php echo htmlspecialchars($defaultName); ?>
+                    <?php if (isset($latestScores[7])): ?>
+                        <span class="text-gray-600 font-normal text-base">Level <?php echo number_format($latestScores[7]); ?></span>
+                    <?php endif; ?>
+                </h1>
+                <button type="button" id="copyNameBtn"
+                        data-name="<?php echo htmlspecialchars($defaultName, ENT_QUOTES); ?>"
+                        title="Copy character name"
+                        class="inline-flex items-center gap-1.5 text-sm border border-gray-300 rounded-md px-2.5 py-1 text-gray-600 hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    <span class="copy-label">Copy</span>
+                </button>
+            </div>
             <?php if ($vocation !== 'Unknown'): ?>
                 <div class="text-sm text-gray-600 mt-1"><?php echo htmlspecialchars($vocation); ?></div>
             <?php endif; ?>
         </div>
+        <script>
+        (function () {
+            var btn = document.getElementById('copyNameBtn');
+            if (!btn) return;
+            function flash() {
+                var label = btn.querySelector('.copy-label');
+                var prev = label ? label.textContent : '';
+                if (label) label.textContent = 'Copied!';
+                setTimeout(function () { if (label) label.textContent = prev || 'Copy'; }, 1500);
+            }
+            function fallback(text) {
+                var ta = document.createElement('textarea');
+                ta.value = text; ta.setAttribute('readonly', '');
+                ta.style.position = 'fixed'; ta.style.opacity = '0';
+                document.body.appendChild(ta); ta.select();
+                try { document.execCommand('copy'); } catch (e) {}
+                document.body.removeChild(ta);
+            }
+            btn.addEventListener('click', function () {
+                var name = btn.getAttribute('data-name') || '';
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(name).then(flash, function () { fallback(name); flash(); });
+                } else { fallback(name); flash(); }
+            });
+        })();
+        </script>
     <?php endif; ?>
 
     <!-- Chart section with filters -->
