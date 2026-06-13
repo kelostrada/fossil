@@ -33,6 +33,7 @@ RSYNC_OPTS=(
   --exclude='notified_logins.json'
   --exclude='deploy.sh'
   --exclude='README.md'
+  --exclude='tools/'
 )
 
 REMOTE="${SSH_USER}@${SSH_HOST}:${REMOTE_PATH}"
