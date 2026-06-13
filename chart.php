@@ -277,11 +277,11 @@ $extraScripts = '
     var defaultName = ' . json_encode($defaultName) . ';
 
     document.addEventListener("DOMContentLoaded", function() {
-        // Set default date range: start date one month ago and end date today
+        // Set default date range: start date two years ago and end date today
         var today = new Date();
-        var oneMonthAgo = new Date();
-        oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
-        document.getElementById("startDate").value = oneMonthAgo.toISOString().substring(0, 10);
+        var twoYearsAgo = new Date();
+        twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2);
+        document.getElementById("startDate").value = twoYearsAgo.toISOString().substring(0, 10);
         document.getElementById("endDate").value = today.toISOString().substring(0, 10);
 
         var startDateInput = document.getElementById("startDate");
