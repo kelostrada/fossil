@@ -12,8 +12,8 @@ $skillMap = $GLOBALS['skillNames'];
 ob_start();
 ?>
 
-<div class="">
-    <h1 class="text-xl md:text-3xl font-bold text-center mb-4">Recent Skill Changes</h1>
+<div class="page-container">
+    <?php echo render_page_header('Recent Skill Changes'); ?>
 
     <?php
     // Query recent advancements - last 20 records where a player's skill level increased
@@ -43,7 +43,7 @@ ob_start();
 
     $result = $conn->query($sql);
 
-    echo "<div class='bg-white rounded-lg shadow-md overflow-hidden max-w-4xl mx-auto'>";
+    echo "<div class='bg-white rounded-lg shadow-md overflow-hidden'>";
     echo "<div class='overflow-x-auto'>";
     echo "<table class='min-w-full divide-y divide-gray-200'>";
     echo "<thead class='bg-gray-50'>";

@@ -33,8 +33,8 @@ if ($deathsResult) {
 ob_start();
 ?>
 
-<div class="max-w-6xl mx-auto px-4">
-    <h1 class="text-2xl md:text-3xl font-bold text-center text-gray-800 my-6">Recent Deaths</h1>
+<div class="page-container">
+    <?php echo render_page_header('Recent Deaths'); ?>
     
     <div class="bg-white rounded-lg shadow-md p-4 md:p-6">
         <p class="text-gray-600 text-sm mb-6 text-center">

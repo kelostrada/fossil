@@ -13,12 +13,8 @@ $conn = getDatabaseConnection();
 ob_start();
 ?>
 
-<div class="max-w-full">
-    <h1 class="text-xl md:text-2xl font-bold text-center mb-2">Online Activity</h1>
-    <p class="text-center text-xs text-gray-600 mb-4 px-4">
-        Online durations per character daily. 
-        <span class="fv-online inline-block mt-1 px-2 py-0.5 rounded text-xs">Green background means currently online</span>
-    </p>
+<div class="page-container">
+    <?php echo render_page_header('Online Activity', 'Online durations per character, daily. <span class="fv-online inline-block px-2 py-0.5 rounded text-xs align-middle">Currently online</span>'); ?>
 
     <!-- Date Filters Form -->
     <form method="GET" action="" class="bg-white p-4 rounded shadow-md max-w-xl mx-auto mb-6">

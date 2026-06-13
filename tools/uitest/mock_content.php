@@ -18,8 +18,10 @@ function uitest_mock_content(string $page): string
 
 function uitest_dashboard(): string
 {
+    $header = render_page_header('Highscores');
     return <<<HTML
-<h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-6">Highscores</h1>
+<div class="page-container">
+$header
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
   <div class="bg-white shadow-md rounded-lg p-6">
     <h2 class="text-lg font-semibold text-gray-800 mb-2">Top Player</h2>
@@ -38,6 +40,7 @@ function uitest_dashboard(): string
     <p class="text-sm text-gray-500 mt-1">Slain by a Demon at level 210</p>
   </div>
 </div>
+</div>
 HTML;
 }
 
@@ -51,12 +54,10 @@ function uitest_online(): string
         $cls = $on ? 'fv-online p-0.5 md:p-1 rounded text-xs md:text-sm' : 'p-0.5 md:p-1 text-xs md:text-sm';
         $cells .= "<div class='$cls'>$row</div>";
     }
+    $header = render_page_header('Online Activity', 'Online durations per character, daily. <span class="fv-online inline-block px-2 py-0.5 rounded text-xs align-middle">Currently online</span>');
     return <<<HTML
-<div class="max-w-full">
-  <h1 class="text-xl md:text-2xl font-bold text-center mb-2">Online Activity</h1>
-  <p class="text-center text-xs text-gray-600 mb-4 px-4">Online durations per character daily.
-    <span class="fv-online inline-block mt-1 px-2 py-0.5 rounded text-xs">Green background means currently online</span>
-  </p>
+<div class="page-container">
+  $header
   <div class="bg-white rounded-lg shadow-md"><div class="table-container">
     <table class="min-w-full"><thead class="bg-gray-50"><tr>
       <th class="px-2 md:px-3 py-1.5 border-b border-gray-200 text-gray-700 font-semibold whitespace-nowrap text-xs md:text-sm">2026-06-13</th>
@@ -89,11 +90,11 @@ function uitest_killers(): string
             . "<td class='border border-gray-300 px-4 py-2 text-sm font-bold'>" . rand(5, 90) . "</td>"
             . "</tr>";
     }
+    $header = render_page_header('Player Killers Ranking', 'Players ranked by the number of unique kills made, with total kills as a tiebreaker.');
     return <<<HTML
-<div class="max-w-6xl mx-auto px-4">
-  <h1 class="text-2xl md:text-3xl font-bold text-center text-gray-800 my-6">Player Killers Ranking</h1>
+<div class="page-container">
+  $header
   <div class="bg-white rounded-lg shadow-md p-6">
-    <p class="text-gray-600 text-sm mb-6 text-center">Players ranked by unique kills.</p>
     <div class="overflow-x-auto">
       <table class="min-w-full table-auto border-collapse border border-gray-300">
         <thead class="bg-gray-100"><tr>

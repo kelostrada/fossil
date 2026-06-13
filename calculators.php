@@ -6,12 +6,8 @@ $pageTitle = 'Calculators - Fossil Stats';
 ob_start();
 ?>
 
-<div class="max-w-5xl mx-auto" x-data="{ tab: 'training' }">
-    <h1 class="text-3xl font-bold text-gray-800 mb-2">Calculators</h1>
-    <p class="text-gray-500 mb-6">
-        Tuned for Fossil: no promotions; Sudden Death and Ultimate Explosion at 70% damage.
-        Results update as you type.
-    </p>
+<div class="page-container" x-data="{ tab: 'training' }">
+    <?php echo render_page_header('Calculators', 'Tuned for Fossil: no promotions; Sudden Death and Ultimate Explosion at 70% damage. Results update as you type.'); ?>
 
     <!-- Tabs -->
     <div class="flex flex-wrap border-b border-gray-200 mb-6">

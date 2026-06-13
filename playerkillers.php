@@ -54,14 +54,10 @@ if ($killersResult) {
 ob_start();
 ?>
 
-<div class="max-w-6xl mx-auto px-4">
-    <h1 class="text-3xl font-bold text-center text-gray-800 my-6">Player Killers Ranking</h1>
-    
+<div class="page-container">
+    <?php echo render_page_header('Player Killers Ranking', 'Players ranked by the number of unique kills made, with total kills as a tiebreaker.'); ?>
+
     <div class="bg-white rounded-lg shadow-md p-6">
-        <p class="text-gray-600 text-sm mb-6 text-center">
-            This page shows players with the most kills on other players.
-            Players are ranked by the number of unique kills they have made, with total kills as a secondary criteria.
-        </p>
         
         <?php if (empty($topKillers)): ?>
             <p class="text-gray-500 text-center py-8">No player killers recorded.</p>

@@ -43,8 +43,8 @@ function getTopPlayers($conn, $type, $vocation, $limit = 500) {
 ob_start();
 ?>
 
-<div class="container mx-auto px-4 py-8">
-    <h1 class="text-xl md:text-3xl font-bold text-center mb-4">Highscores</h1>
+<div class="page-container">
+    <?php echo render_page_header('Highscores'); ?>
 
     <!-- Skill Type Navigation -->
     <div class="flex flex-wrap justify-center gap-2 mb-6">

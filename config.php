@@ -1,5 +1,8 @@
 <?php
 
+// Shared UI components (page header, etc.) available to every page.
+require_once __DIR__ . '/templates/components.php';
+
 // Load environment variables from .env file
 function loadEnv($path = '.env') {
     if (!file_exists($path)) {

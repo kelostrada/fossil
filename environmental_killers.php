@@ -195,14 +195,10 @@ uasort($monsterKills, function($a, $b) {
 ob_start();
 ?>
 
-<div class="max-w-6xl mx-auto px-4">
-    <h1 class="text-2xl md:text-3xl font-bold text-center text-gray-800 my-6">Environmental Killers</h1>
-    
+<div class="page-container">
+    <?php echo render_page_header('Environmental Killers', 'Which creatures cause the most player deaths in the game world.'); ?>
+
     <div class="bg-white rounded-lg shadow-md p-4 md:p-6">
-        <p class="text-gray-600 text-sm mb-6 text-center">
-            Statistics about which creatures are the most dangerous in the game world. 
-            The numbers represent how many player deaths were caused by each monster type.
-        </p>
         
         <div class="overflow-x-auto">
             <table class="min-w-full bg-white rounded-lg overflow-hidden" id="environmentalKillersTable">

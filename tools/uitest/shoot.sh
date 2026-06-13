@@ -47,8 +47,9 @@ mkdir -p "$OUT" "$SHOTS"
 
 dims() { # viewport -> WxH
   case "$1" in
-    mobile)  echo "390,1700" ;;
-    desktop) echo "1280,1600" ;;
+    mobile)    echo "390,1700" ;;
+    desktop)   echo "1280,1600" ;;
+    desktop16) echo "1512,1500" ;;   # MacBook Pro 16" logical width
     *) echo "1280,1600" ;;
   esac
 }
