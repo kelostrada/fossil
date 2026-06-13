@@ -11,6 +11,7 @@ function uitest_mock_content(string $page): string
         case 'killers':  return uitest_killers();
         case 'wide':     return uitest_wide_table();
         case 'chart':    return uitest_chart();
+        case 'highscores': return uitest_highscores();
         case 'dashboard':
         default:         return uitest_dashboard();
     }
@@ -108,6 +109,36 @@ function uitest_killers(): string
       </table>
     </div>
   </div>
+</div>
+HTML;
+}
+
+function uitest_highscores(): string
+{
+    $header = render_page_header('Highscores');
+    $vocs = ['Knight', 'Paladin', 'Sorcerer', 'Druid', 'No vocation'];
+    $longNames = ['Bruniell Azara', 'Witch', 'Sham Bernardo', 'Interemptatis Rex', 'Lyra', 'Drijaximus', 'Al', 'Plains Of Havoc', 'Mortendis', 'Xy'];
+    $cards = '';
+    foreach ($vocs as $voc) {
+        $rows = '';
+        for ($i = 0; $i < 10; $i++) {
+            $n = $longNames[($i + strlen($voc)) % count($longNames)];
+            $rows .= "<tr class='border-t border-gray-100'>"
+                . "<td class='py-2 pr-2 text-sm text-gray-500 align-top'>" . ($i + 1) . "</td>"
+                . "<td class='py-2 align-top break-words'><a href='#' class='hover:underline text-blue-600'>$n</a></td>"
+                . "<td class='py-2 text-right font-medium align-top whitespace-nowrap'>" . rand(40, 480) . "</td>"
+                . "</tr>";
+        }
+        $cards .= "<div class='bg-white rounded-lg shadow-md overflow-hidden'>"
+            . "<div class='section-header px-4 py-2 font-semibold'>$voc</div>"
+            . "<div class='p-4'><table class='w-full table-fixed'>"
+            . "<thead><tr class='text-left text-sm text-gray-600'><th class='pb-2 w-8'>#</th><th class='pb-2'>Name</th><th class='pb-2 text-right w-16'>Score</th></tr></thead>"
+            . "<tbody>$rows</tbody></table></div></div>";
+    }
+    return <<<HTML
+<div class="page-container">
+  $header
+  <div class="grid grid-cols-2 lg:grid-cols-5 gap-6">$cards</div>
 </div>
 HTML;
 }
