@@ -317,11 +317,11 @@ html[data-design="2"].dark {
     --accent-soft-bg: #2c2820;
     --hover-bg: #2a261e;
 }
-/* turn the sidebar into a full-width masthead */
+/* turn the sidebar into a full-width masthead (desktop only — the mobile
+   drawer override at the end of the file keeps small screens working) */
 html[data-design="2"] .lg\:flex-row { flex-direction: column; }
 html[data-design="2"] .mobile-menu,
 html[data-design="2"] .lg\:w-64 { width: 100% !important; box-shadow: none !important; border-bottom: 1px solid var(--border); }
-html[data-design="2"] .lg\:relative { position: relative; }
 @media (min-width: 1024px) {
     html[data-design="2"] .mobile-menu .p-6 {
         display: grid;
@@ -782,6 +782,24 @@ html[data-design="8"] .shadow-md::before, html[data-design="8"] .shadow-lg::befo
 }
 html[data-design="8"] h2 { text-transform: uppercase; letter-spacing: .08em; font-weight: 400; }
 
+
+/* ===================================================================== */
+/* Mobile shell guarantees (must win over per-design overrides)          */
+/* --------------------------------------------------------------------- */
+/* Several designs restyle .shadow-lg / .lg:relative, which the sidebar  */
+/* carries — that leaked position:relative and broke the off-canvas      */
+/* drawer. Force the drawer back to a fixed overlay on small screens,    */
+/* and reserve top space so the floating hamburger never covers content. */
+@media (max-width: 1024px) {
+    html[data-design] .mobile-menu {
+        position: fixed !important;
+        top: 0; left: 0; bottom: 0;
+        width: 16rem !important;
+        max-width: 84vw;
+        z-index: 50;
+    }
+    html[data-design] main > div { padding-top: 4rem; }
+}
 
 /* ===================================================================== */
 /* Dark-mode toggle switch (sidebar)                                     */
