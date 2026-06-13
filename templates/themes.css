@@ -1,0 +1,662 @@
+/* =====================================================================
+   Fossil Stats — Design Theme System
+   ---------------------------------------------------------------------
+   The pages use Tailwind v2 utility classes (bg-white, text-gray-700,
+   bg-blue-600, ...). Instead of rewriting every page, we remap those
+   utilities to semantic CSS custom properties, then redefine those
+   properties per design and per light/dark mode.
+
+   Selectors are scoped under `html[data-design]` so they always beat
+   Tailwind's single-class rules (specificity 0,2,1 > 0,1,0) without
+   needing !important.
+
+   Active design  -> html[data-design="1".."8"]
+   Dark mode      -> html.dark
+   ===================================================================== */
+
+/* ----- variable contract (defaults: Design 1 / Classic / light) ----- */
+html[data-design] {
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-heading: var(--font);
+
+    --bg-page: #f3f4f6;
+    --bg-surface: #ffffff;
+    --bg-surface-alt: #f9fafb;
+    --bg-inverse: #1f2937;
+
+    --text-strong: #111827;
+    --text-primary: #374151;
+    --text-secondary: #4b5563;
+    --text-muted: #6b7280;
+    --text-faint: #9ca3af;
+
+    --border: #e5e7eb;
+
+    --accent: #2563eb;
+    --accent-strong: #1d4ed8;
+    --accent-contrast: #ffffff;
+    --accent-soft-bg: #dbeafe;
+
+    --positive: #16a34a;
+    --positive-soft: #bbf7d0;
+    --negative: #dc2626;
+    --warning: #d97706;
+    --warning-soft: #fefce8;
+
+    --hover-bg: #f3f4f6;
+
+    --radius-sm: 0.25rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.75rem;
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 4px 12px -2px rgba(0, 0, 0, 0.10);
+    --shadow-lg: 0 12px 28px -6px rgba(0, 0, 0, 0.14);
+
+    --sidebar-bg: var(--bg-surface);
+    --sidebar-accent: var(--accent);
+}
+
+html[data-design].dark {
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+    --shadow-md: 0 4px 14px -2px rgba(0, 0, 0, 0.6);
+    --shadow-lg: 0 14px 34px -6px rgba(0, 0, 0, 0.7);
+}
+
+/* ===================================================================== */
+/* Utility remapping — applied to every design                           */
+/* ===================================================================== */
+html[data-design] body {
+    font-family: var(--font);
+    background-color: var(--bg-page);
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+    transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+html[data-design] h1,
+html[data-design] h2,
+html[data-design] h3 { font-family: var(--font-heading); }
+
+/* backgrounds */
+html[data-design] .bg-gray-100 { background-color: var(--bg-page); }
+html[data-design] .bg-white    { background-color: var(--bg-surface); }
+html[data-design] .bg-gray-50  { background-color: var(--bg-surface-alt); }
+html[data-design] .bg-gray-800 { background-color: var(--bg-inverse); }
+html[data-design] .bg-blue-50,
+html[data-design] .bg-blue-100 { background-color: var(--accent-soft-bg); }
+html[data-design] .bg-blue-500,
+html[data-design] .bg-blue-600 { background-color: var(--accent); color: var(--accent-contrast); }
+html[data-design] .bg-green-600,
+html[data-design] .bg-green-700 { background-color: var(--positive); }
+html[data-design] .bg-green-200 { background-color: var(--positive-soft); }
+html[data-design] .bg-yellow-50 { background-color: var(--warning-soft); }
+
+/* text */
+html[data-design] .text-gray-900,
+html[data-design] .text-gray-800 { color: var(--text-strong); }
+html[data-design] .text-gray-700 { color: var(--text-primary); }
+html[data-design] .text-gray-600 { color: var(--text-secondary); }
+html[data-design] .text-gray-500,
+html[data-design] .text-gray-400 { color: var(--text-muted); }
+html[data-design] .text-gray-300 { color: var(--text-faint); }
+html[data-design] .text-blue-800,
+html[data-design] .text-blue-700,
+html[data-design] .text-blue-600 { color: var(--accent-strong); }
+html[data-design] .text-blue-500 { color: var(--accent); }
+html[data-design] .text-green-700,
+html[data-design] .text-green-600 { color: var(--positive); }
+html[data-design] .text-red-700,
+html[data-design] .text-red-600 { color: var(--negative); }
+html[data-design] .text-amber-600 { color: var(--warning); }
+
+/* borders */
+html[data-design] .border-gray-100,
+html[data-design] .border-gray-200,
+html[data-design] .border-gray-300 { border-color: var(--border); }
+html[data-design] .border-blue-500 { border-color: var(--accent); }
+html[data-design] .divide-gray-100 > :not([hidden]) ~ :not([hidden]),
+html[data-design] .divide-gray-200 > :not([hidden]) ~ :not([hidden]) { border-color: var(--border); }
+
+/* hover states */
+html[data-design] .hover\:bg-gray-100:hover { background-color: var(--hover-bg); }
+html[data-design] .hover\:bg-gray-50:hover  { background-color: var(--hover-bg); }
+html[data-design] .hover\:text-gray-900:hover { color: var(--text-strong); }
+html[data-design] .hover\:text-gray-700:hover { color: var(--text-primary); }
+html[data-design] .hover\:text-blue-800:hover,
+html[data-design] .hover\:text-blue-700:hover { color: var(--accent); }
+html[data-design] .hover\:bg-blue-700:hover,
+html[data-design] .hover\:bg-blue-600:hover { background-color: var(--accent-strong); }
+
+/* radius */
+html[data-design] .rounded    { border-radius: var(--radius-sm); }
+html[data-design] .rounded-md { border-radius: var(--radius-md); }
+html[data-design] .rounded-lg { border-radius: var(--radius-lg); }
+
+/* shadows */
+html[data-design] .shadow-sm { box-shadow: var(--shadow-sm); }
+html[data-design] .shadow,
+html[data-design] .shadow-md { box-shadow: var(--shadow-md); }
+html[data-design] .shadow-lg { box-shadow: var(--shadow-lg); }
+
+/* form controls */
+html[data-design] input,
+html[data-design] select,
+html[data-design] textarea {
+    background-color: var(--bg-surface);
+    color: var(--text-primary);
+    border-color: var(--border);
+}
+html[data-design] input::placeholder { color: var(--text-faint); }
+html[data-design] input:focus,
+html[data-design] select:focus,
+html[data-design] textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent-soft-bg);
+}
+
+/* tables */
+html[data-design] table { color: var(--text-primary); }
+html[data-design] thead { color: var(--text-secondary); }
+
+/* jQuery UI autocomplete */
+html[data-design] .ui-autocomplete {
+    background: var(--bg-surface);
+    border-color: var(--border);
+    color: var(--text-primary);
+    box-shadow: var(--shadow-md);
+}
+html[data-design] .ui-menu-item { border-bottom-color: var(--border); }
+html[data-design] .ui-state-active { background: var(--accent) !important; color: var(--accent-contrast) !important; }
+
+/* sidebar shell — shared treatment */
+html[data-design] .mobile-menu,
+html[data-design] aside,
+html[data-design] .lg\:w-64 {
+    background-color: var(--sidebar-bg);
+}
+
+/* ===================================================================== */
+/* DESIGN 1 — Classic (refined default)                                  */
+/* ===================================================================== */
+html[data-design="1"].dark {
+    --bg-page: #0f172a;
+    --bg-surface: #1e293b;
+    --bg-surface-alt: #1e293b;
+    --bg-inverse: #0b1220;
+    --text-strong: #f1f5f9;
+    --text-primary: #e2e8f0;
+    --text-secondary: #cbd5e1;
+    --text-muted: #94a3b8;
+    --text-faint: #64748b;
+    --border: #334155;
+    --accent: #3b82f6;
+    --accent-strong: #93c5fd;
+    --accent-soft-bg: #1e3a8a;
+    --positive: #4ade80;
+    --negative: #f87171;
+    --warning-soft: #422006;
+    --hover-bg: #334155;
+}
+
+/* ===================================================================== */
+/* DESIGN 2 — Ocean (teal / cyan, airy)                                  */
+/* ===================================================================== */
+html[data-design="2"] {
+    --bg-page: #ecfeff;
+    --bg-surface: #ffffff;
+    --bg-surface-alt: #f0fdfa;
+    --bg-inverse: #134e4a;
+    --text-strong: #0f3a3e;
+    --text-primary: #134e4a;
+    --text-secondary: #0f766e;
+    --text-muted: #5eaab0;
+    --text-faint: #94d5d8;
+    --border: #cdeef0;
+    --accent: #0d9488;
+    --accent-strong: #0f766e;
+    --accent-soft-bg: #ccfbf1;
+    --positive: #059669;
+    --positive-soft: #a7f3d0;
+    --negative: #e11d48;
+    --warning-soft: #fefce8;
+    --hover-bg: #e6fffb;
+    --radius-md: 0.625rem;
+    --radius-lg: 1rem;
+}
+html[data-design="2"].dark {
+    --bg-page: #03201f;
+    --bg-surface: #0b302e;
+    --bg-surface-alt: #0b302e;
+    --bg-inverse: #03201f;
+    --text-strong: #ccfbf1;
+    --text-primary: #99f6e4;
+    --text-secondary: #5eead4;
+    --text-muted: #2dd4bf;
+    --text-faint: #14857c;
+    --border: #134e4a;
+    --accent: #2dd4bf;
+    --accent-strong: #5eead4;
+    --accent-contrast: #03201f;
+    --accent-soft-bg: #134e4a;
+    --positive: #34d399;
+    --positive-soft: #134e4a;
+    --negative: #fb7185;
+    --warning-soft: #422006;
+    --hover-bg: #134e4a;
+}
+
+/* ===================================================================== */
+/* DESIGN 3 — Sunset (warm orange / rose, soft & rounded)                */
+/* ===================================================================== */
+html[data-design="3"] {
+    --font: "Nunito", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --bg-page: #fff7ed;
+    --bg-surface: #fffdfb;
+    --bg-surface-alt: #fff1e6;
+    --bg-inverse: #7c2d12;
+    --text-strong: #431407;
+    --text-primary: #7c2d12;
+    --text-secondary: #9a3412;
+    --text-muted: #c2632f;
+    --text-faint: #e0a878;
+    --border: #fed7aa;
+    --accent: #ea580c;
+    --accent-strong: #c2410c;
+    --accent-soft-bg: #ffedd5;
+    --positive: #65a30d;
+    --positive-soft: #d9f99d;
+    --negative: #e11d48;
+    --warning-soft: #fff7ed;
+    --hover-bg: #fff1e6;
+    --radius-sm: 0.5rem;
+    --radius-md: 0.875rem;
+    --radius-lg: 1.25rem;
+}
+html[data-design="3"].dark {
+    --bg-page: #1a0f0a;
+    --bg-surface: #2a1810;
+    --bg-surface-alt: #2a1810;
+    --bg-inverse: #1a0f0a;
+    --text-strong: #ffedd5;
+    --text-primary: #fdba74;
+    --text-secondary: #fb923c;
+    --text-muted: #ea985f;
+    --text-faint: #9a5a30;
+    --border: #7c2d12;
+    --accent: #fb923c;
+    --accent-strong: #fdba74;
+    --accent-contrast: #1a0f0a;
+    --accent-soft-bg: #7c2d12;
+    --positive: #a3e635;
+    --negative: #fb7185;
+    --warning-soft: #431407;
+    --hover-bg: #431407;
+}
+
+/* ===================================================================== */
+/* DESIGN 4 — Forest (natural greens)                                    */
+/* ===================================================================== */
+html[data-design="4"] {
+    --bg-page: #f3faf3;
+    --bg-surface: #ffffff;
+    --bg-surface-alt: #ecf7ec;
+    --bg-inverse: #14331b;
+    --text-strong: #14331b;
+    --text-primary: #1e472a;
+    --text-secondary: #357a47;
+    --text-muted: #6ba377;
+    --text-faint: #a7cdab;
+    --border: #d4ead6;
+    --accent: #16a34a;
+    --accent-strong: #15803d;
+    --accent-soft-bg: #dcfce7;
+    --positive: #16a34a;
+    --positive-soft: #bbf7d0;
+    --negative: #dc2626;
+    --warning-soft: #fefce8;
+    --hover-bg: #ecf7ec;
+}
+html[data-design="4"].dark {
+    --bg-page: #0b1a0f;
+    --bg-surface: #122414;
+    --bg-surface-alt: #122414;
+    --bg-inverse: #0b1a0f;
+    --text-strong: #dcfce7;
+    --text-primary: #bbf7d0;
+    --text-secondary: #86efac;
+    --text-muted: #4ade80;
+    --text-faint: #2f7d44;
+    --border: #1e472a;
+    --accent: #22c55e;
+    --accent-strong: #86efac;
+    --accent-contrast: #0b1a0f;
+    --accent-soft-bg: #14532d;
+    --positive: #4ade80;
+    --negative: #f87171;
+    --warning-soft: #3a2f06;
+    --hover-bg: #1a3a22;
+}
+
+/* ===================================================================== */
+/* DESIGN 5 — Midnight (indigo / violet, glassy)                         */
+/* ===================================================================== */
+html[data-design="5"] {
+    --bg-page: #f5f3ff;
+    --bg-surface: #ffffff;
+    --bg-surface-alt: #faf5ff;
+    --bg-inverse: #2e1065;
+    --text-strong: #2e1065;
+    --text-primary: #4c1d95;
+    --text-secondary: #6d28d9;
+    --text-muted: #8b5cf6;
+    --text-faint: #c4b5fd;
+    --border: #ddd6fe;
+    --accent: #7c3aed;
+    --accent-strong: #6d28d9;
+    --accent-soft-bg: #ede9fe;
+    --positive: #0d9488;
+    --positive-soft: #ccfbf1;
+    --negative: #e11d48;
+    --warning-soft: #fdf4ff;
+    --hover-bg: #f5f3ff;
+    --radius-lg: 0.875rem;
+}
+html[data-design="5"].dark {
+    --bg-page: #0e0a1f;
+    --bg-surface: rgba(34, 22, 64, 0.72);
+    --bg-surface-alt: rgba(34, 22, 64, 0.55);
+    --bg-inverse: #0e0a1f;
+    --text-strong: #ede9fe;
+    --text-primary: #ddd6fe;
+    --text-secondary: #c4b5fd;
+    --text-muted: #a78bfa;
+    --text-faint: #7c5cc4;
+    --border: #4c1d95;
+    --accent: #a78bfa;
+    --accent-strong: #c4b5fd;
+    --accent-contrast: #0e0a1f;
+    --accent-soft-bg: #4c1d95;
+    --positive: #2dd4bf;
+    --negative: #fb7185;
+    --warning-soft: #2e1065;
+    --hover-bg: #2e1065;
+}
+/* glassy surfaces in dark midnight */
+html[data-design="5"].dark .bg-white,
+html[data-design="5"].dark .mobile-menu,
+html[data-design="5"].dark .lg\:w-64 {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+html[data-design="5"] body {
+    background-image: radial-gradient(circle at 15% 0%, rgba(124, 58, 237, 0.08), transparent 45%),
+                      radial-gradient(circle at 85% 100%, rgba(168, 139, 250, 0.10), transparent 45%);
+    background-attachment: fixed;
+}
+
+/* ===================================================================== */
+/* DESIGN 6 — Mono (minimal grayscale, sharp, hairline borders)          */
+/* ===================================================================== */
+html[data-design="6"] {
+    --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sans-serif;
+    --bg-page: #ffffff;
+    --bg-surface: #ffffff;
+    --bg-surface-alt: #fafafa;
+    --bg-inverse: #0a0a0a;
+    --text-strong: #0a0a0a;
+    --text-primary: #171717;
+    --text-secondary: #404040;
+    --text-muted: #737373;
+    --text-faint: #a3a3a3;
+    --border: #e5e5e5;
+    --accent: #0a0a0a;
+    --accent-strong: #000000;
+    --accent-soft-bg: #f5f5f5;
+    --positive: #171717;
+    --positive-soft: #ededed;
+    --negative: #525252;
+    --warning-soft: #fafafa;
+    --hover-bg: #f5f5f5;
+    --radius-sm: 0;
+    --radius-md: 0;
+    --radius-lg: 0;
+    --shadow-sm: none;
+    --shadow-md: none;
+    --shadow-lg: none;
+}
+html[data-design="6"].dark {
+    --bg-page: #0a0a0a;
+    --bg-surface: #141414;
+    --bg-surface-alt: #141414;
+    --bg-inverse: #fafafa;
+    --text-strong: #fafafa;
+    --text-primary: #e5e5e5;
+    --text-secondary: #a3a3a3;
+    --text-muted: #737373;
+    --text-faint: #525252;
+    --border: #2a2a2a;
+    --accent: #fafafa;
+    --accent-strong: #ffffff;
+    --accent-contrast: #0a0a0a;
+    --accent-soft-bg: #262626;
+    --positive: #fafafa;
+    --negative: #a3a3a3;
+    --warning-soft: #1a1a1a;
+    --hover-bg: #1f1f1f;
+}
+/* mono uses borders instead of shadows for separation */
+html[data-design="6"] .shadow,
+html[data-design="6"] .shadow-md,
+html[data-design="6"] .shadow-lg,
+html[data-design="6"] .shadow-sm { border: 1px solid var(--border); }
+html[data-design="6"] nav a { text-transform: uppercase; letter-spacing: 0.04em; font-size: 0.8rem; }
+
+/* ===================================================================== */
+/* DESIGN 7 — Terminal (monospace, retro)                                */
+/* ===================================================================== */
+html[data-design="7"] {
+    --font: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+    --bg-page: #faf6e9;
+    --bg-surface: #fffdf2;
+    --bg-surface-alt: #f4eecf;
+    --bg-inverse: #3b2f0b;
+    --text-strong: #3b2f0b;
+    --text-primary: #5c4a13;
+    --text-secondary: #6b5618;
+    --text-muted: #8a7330;
+    --text-faint: #b9a567;
+    --border: #e7dcae;
+    --accent: #b45309;
+    --accent-strong: #92400e;
+    --accent-soft-bg: #f6e8c6;
+    --positive: #4d7c0f;
+    --positive-soft: #e3edc3;
+    --negative: #b91c1c;
+    --warning-soft: #fdf6dd;
+    --hover-bg: #f4eecf;
+    --radius-sm: 0;
+    --radius-md: 0;
+    --radius-lg: 0;
+}
+html[data-design="7"].dark {
+    --bg-page: #020a02;
+    --bg-surface: #051405;
+    --bg-surface-alt: #061b06;
+    --bg-inverse: #4ade80;
+    --text-strong: #86efac;
+    --text-primary: #4ade80;
+    --text-secondary: #22c55e;
+    --text-muted: #16a34a;
+    --text-faint: #15803d;
+    --border: #14532d;
+    --accent: #22c55e;
+    --accent-strong: #86efac;
+    --accent-contrast: #020a02;
+    --accent-soft-bg: #052e16;
+    --positive: #4ade80;
+    --negative: #f87171;
+    --warning-soft: #0a2e0a;
+    --hover-bg: #0a2e0a;
+}
+html[data-design="7"] .shadow,
+html[data-design="7"] .shadow-md,
+html[data-design="7"] .shadow-lg,
+html[data-design="7"] .shadow-sm { border: 1px solid var(--border); box-shadow: none; }
+html[data-design="7"] nav a { text-transform: uppercase; letter-spacing: 0.05em; }
+html[data-design="7"] nav a::before { content: "> "; opacity: 0.6; }
+html[data-design="7"].dark body { text-shadow: 0 0 2px rgba(74, 222, 128, 0.35); }
+html[data-design="7"].dark h1 { text-shadow: 0 0 8px rgba(74, 222, 128, 0.45); }
+
+/* ===================================================================== */
+/* DESIGN 8 — Material (elevated cards, vibrant indigo)                  */
+/* ===================================================================== */
+html[data-design="8"] {
+    --font: "Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --bg-page: #eef1f6;
+    --bg-surface: #ffffff;
+    --bg-surface-alt: #f5f7fa;
+    --bg-inverse: #1a202c;
+    --text-strong: #1a202c;
+    --text-primary: #2d3748;
+    --text-secondary: #4a5568;
+    --text-muted: #718096;
+    --text-faint: #a0aec0;
+    --border: #e2e8f0;
+    --accent: #5850ec;
+    --accent-strong: #4338ca;
+    --accent-soft-bg: #e0e7ff;
+    --positive: #38a169;
+    --positive-soft: #c6f6d5;
+    --negative: #e53e3e;
+    --warning-soft: #fffbea;
+    --hover-bg: #eef2ff;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.75rem;
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.12), 0 2px 4px -1px rgba(0, 0, 0, 0.07);
+    --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.16), 0 10px 10px -5px rgba(0, 0, 0, 0.06);
+}
+html[data-design="8"].dark {
+    --bg-page: #121826;
+    --bg-surface: #1c2433;
+    --bg-surface-alt: #1c2433;
+    --bg-inverse: #0c111c;
+    --text-strong: #f7fafc;
+    --text-primary: #e2e8f0;
+    --text-secondary: #cbd5e0;
+    --text-muted: #a0aec0;
+    --text-faint: #718096;
+    --border: #2d3748;
+    --accent: #818cf8;
+    --accent-strong: #a5b4fc;
+    --accent-soft-bg: #312e81;
+    --positive: #48bb78;
+    --negative: #fc8181;
+    --warning-soft: #2d2a1a;
+    --hover-bg: #2d3748;
+}
+
+/* ===================================================================== */
+/* Dark-mode toggle switch (sidebar)                                     */
+/* ===================================================================== */
+.theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+}
+.theme-toggle-track {
+    position: relative;
+    width: 44px;
+    height: 24px;
+    background-color: var(--border);
+    border-radius: 9999px;
+    transition: background-color 0.2s;
+    flex-shrink: 0;
+}
+html.dark .theme-toggle-track { background-color: var(--accent); }
+.theme-toggle-thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 20px;
+    height: 20px;
+    background-color: #ffffff;
+    border-radius: 9999px;
+    transition: transform 0.2s;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+html.dark .theme-toggle-thumb { transform: translateX(20px); }
+
+/* ===================================================================== */
+/* Design switcher — subtle fixed footer bar                             */
+/* ===================================================================== */
+.design-switcher {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-bottom: none;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    box-shadow: var(--shadow-lg);
+    opacity: 0.35;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    max-width: 96vw;
+    overflow-x: auto;
+}
+.design-switcher:hover,
+.design-switcher:focus-within { opacity: 1; }
+
+.design-switcher-label {
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-right: 2px;
+    white-space: nowrap;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.design-switcher button {
+    position: relative;
+    width: 20px;
+    height: 20px;
+    border-radius: 6px;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    padding: 0;
+    font-size: 0;
+    background: var(--sw, #888);
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+    flex-shrink: 0;
+}
+.design-switcher button:hover { transform: translateY(-2px) scale(1.08); }
+.design-switcher button:focus-visible { outline: 2px solid var(--text-strong); outline-offset: 2px; }
+
+/* active design ring — matched in JS via .is-active */
+.design-switcher button.is-active {
+    box-shadow: 0 0 0 2px var(--bg-surface), 0 0 0 4px var(--text-strong);
+}
+
+/* swatch colors per design (light-mode accent of each) */
+.design-switcher button[data-design-pick="1"] { --sw: #2563eb; }
+.design-switcher button[data-design-pick="2"] { --sw: #0d9488; }
+.design-switcher button[data-design-pick="3"] { --sw: #ea580c; }
+.design-switcher button[data-design-pick="4"] { --sw: #16a34a; }
+.design-switcher button[data-design-pick="5"] { --sw: #7c3aed; }
+.design-switcher button[data-design-pick="6"] { --sw: #171717; }
+.design-switcher button[data-design-pick="7"] { --sw: #b45309; }
+.design-switcher button[data-design-pick="8"] { --sw: #5850ec; }
+
+/* keep content clear of the fixed switcher */
+html[data-design] main { padding-bottom: 3rem; }

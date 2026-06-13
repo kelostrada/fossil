@@ -16,23 +16,33 @@ $extraHead = (isset($extraHead) ? $extraHead : '') . '
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($pageTitle); ?></title>
-    <!-- Apply dark mode before render to avoid flash -->
+    <!-- Apply saved theme + design before render to avoid a flash -->
     <script>
         (function() {
+            var root = document.documentElement;
             try {
-                if (localStorage.getItem('theme') === 'dark') {
-                    document.documentElement.classList.add('dark');
-                }
-            } catch (e) {}
+                if (localStorage.getItem('theme') === 'dark') root.classList.add('dark');
+                var d = localStorage.getItem('design');
+                if (!/^[1-8]$/.test(d || '')) d = '1';
+                root.setAttribute('data-design', d);
+            } catch (e) {
+                root.setAttribute('data-design', '1');
+            }
         })();
     </script>
+    <!-- Fonts referenced by the design themes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&family=Roboto:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <!-- Tailwind CSS -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <!-- Design theme system (8 designs x light/dark) -->
+    <link href="templates/themes.css" rel="stylesheet">
     <!-- Alpine.js for mobile menu toggle -->
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <?php if (isset($extraHead)) echo $extraHead; ?>
     <style>
-        /* Custom styles */
+        /* Structural layout styles (theming lives in templates/themes.css) */
         @media (max-width: 1024px) {
             .menu-overlay {
                 background-color: rgba(0, 0, 0, 0.5);
@@ -49,107 +59,28 @@ $extraHead = (isset($extraHead) ? $extraHead : '') . '
                 z-index: 50;
             }
         }
-        /* Prevent horizontal scroll on the body */
-        body {
-            overflow-x: hidden;
-        }
+        body { overflow-x: hidden; }
         /* Allow horizontal scroll only on tables */
         .table-container {
             overflow-x: auto;
             max-width: 100%;
         }
-        /* Customize jQuery UI Autocomplete */
+        /* jQuery UI Autocomplete sizing (colors come from themes.css) */
         .ui-autocomplete {
             max-height: 200px;
             overflow-y: auto;
             overflow-x: hidden;
-            background: white;
-            border: 1px solid #ddd;
+            border: 1px solid;
             border-radius: 0.375rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             font-size: 0.875rem;
             z-index: 1000;
         }
         .ui-menu-item {
             padding: 8px 12px;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid;
         }
-        .ui-menu-item:last-child {
-            border-bottom: none;
-        }
-        .ui-state-active {
-            background: #3b82f6 !important;
-            border: none !important;
-            color: white !important;
-            margin: 0 !important;
-        }
-
-        /* Dark mode overrides */
-        html.dark body { background-color: #111827 !important; color: #e5e7eb; }
-        html.dark .bg-white { background-color: #1f2937 !important; }
-        html.dark .bg-gray-50 { background-color: #1f2937 !important; }
-        html.dark .bg-gray-100 { background-color: #111827 !important; }
-        html.dark .bg-gray-800 { background-color: #0b1220 !important; }
-        html.dark .bg-blue-50 { background-color: #172554 !important; }
-        html.dark .bg-blue-100 { background-color: #1e3a8a !important; }
-        html.dark .bg-yellow-50 { background-color: #422006 !important; }
-        html.dark .bg-green-200 { background-color: #064e3b !important; }
-
-        html.dark .text-gray-300 { color: #d1d5db !important; }
-        html.dark .text-gray-400 { color: #cbd5e1 !important; }
-        html.dark .text-gray-500 { color: #cbd5e1 !important; }
-        html.dark .text-gray-600 { color: #d1d5db !important; }
-        html.dark .text-gray-700 { color: #e5e7eb !important; }
-        html.dark .text-gray-800 { color: #f3f4f6 !important; }
-        html.dark .text-gray-900 { color: #f9fafb !important; }
-        html.dark .text-blue-700 { color: #93c5fd !important; }
-        html.dark .text-blue-800 { color: #bfdbfe !important; }
-
-        html.dark .border-gray-100 { border-color: #374151 !important; }
-        html.dark .border-gray-200 { border-color: #374151 !important; }
-        html.dark .border-gray-300 { border-color: #4b5563 !important; }
-
-        html.dark .hover\:bg-gray-100:hover { background-color: #374151 !important; }
-        html.dark .hover\:text-gray-900:hover { color: #ffffff !important; }
-        html.dark .shadow-lg, html.dark .shadow, html.dark .shadow-md {
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.6), 0 2px 4px -1px rgba(0, 0, 0, 0.4) !important;
-        }
-        html.dark input, html.dark select, html.dark textarea {
-            background-color: #1f2937 !important;
-            color: #e5e7eb !important;
-            border-color: #4b5563 !important;
-        }
-        html.dark table { color: #e5e7eb; }
-        html.dark .ui-autocomplete { background: #1f2937; border-color: #4b5563; color: #e5e7eb; }
-        html.dark .ui-menu-item { border-bottom-color: #374151; }
-
-        .theme-toggle {
-            display: inline-flex;
-            align-items: center;
-            cursor: pointer;
-            user-select: none;
-        }
-        .theme-toggle-track {
-            position: relative;
-            width: 44px;
-            height: 24px;
-            background-color: #d1d5db;
-            border-radius: 9999px;
-            transition: background-color 0.2s;
-        }
-        html.dark .theme-toggle-track { background-color: #2563eb; }
-        .theme-toggle-thumb {
-            position: absolute;
-            top: 2px;
-            left: 2px;
-            width: 20px;
-            height: 20px;
-            background-color: #ffffff;
-            border-radius: 9999px;
-            transition: transform 0.2s;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
-        }
-        html.dark .theme-toggle-thumb { transform: translateX(20px); }
+        .ui-menu-item:last-child { border-bottom: none; }
+        .ui-state-active { border: none !important; margin: 0 !important; }
     </style>
 </head>
 <body class="bg-gray-100 font-sans" x-data="{ mobileMenuOpen: false }">
@@ -174,11 +105,12 @@ $extraHead = (isset($extraHead) ? $extraHead : '') . '
             </div>
 
             <div class="p-6">
-                <h1 class="text-2xl font-bold text-gray-800 mb-4">Fossil Stats</h1>
+                <h1 class="text-2xl font-bold text-gray-800 mb-1">Fossil Stats</h1>
+                <div class="h-1 w-10 rounded bg-blue-600 mb-5"></div>
 
                 <!-- Dark mode toggle -->
-                <label class="theme-toggle mb-4" for="themeToggle">
-                    <span class="text-sm text-gray-700 mr-3">Dark mode</span>
+                <label class="theme-toggle mb-5 w-full justify-between" for="themeToggle">
+                    <span class="text-sm font-medium text-gray-600">Dark mode</span>
                     <span class="theme-toggle-track">
                         <input type="checkbox" id="themeToggle" class="sr-only">
                         <span class="theme-toggle-thumb"></span>
@@ -257,24 +189,63 @@ $extraHead = (isset($extraHead) ? $extraHead : '') . '
         </main>
     </div>
 
+    <!-- Design switcher (subtle footer bar) -->
+    <?php
+    $designs = [
+        '1' => 'Classic',
+        '2' => 'Ocean',
+        '3' => 'Sunset',
+        '4' => 'Forest',
+        '5' => 'Midnight',
+        '6' => 'Mono',
+        '7' => 'Terminal',
+        '8' => 'Material',
+    ];
+    ?>
+    <div class="design-switcher" role="group" aria-label="Choose a design theme">
+        <span class="design-switcher-label">Theme</span>
+        <?php foreach ($designs as $num => $name) { ?>
+            <button type="button"
+                    data-design-pick="<?php echo $num; ?>"
+                    title="<?php echo $num . ' — ' . $name; ?>"
+                    aria-label="<?php echo $name; ?> theme"><?php echo $name; ?></button>
+        <?php } ?>
+    </div>
+
     <?php if (isset($extraScripts)) echo $extraScripts; ?>
 
-    <!-- Dark mode toggle wiring -->
+    <!-- Dark mode + design switcher wiring -->
     <script>
     (function() {
-        const toggle = document.getElementById('themeToggle');
-        if (!toggle) return;
-        const isDark = document.documentElement.classList.contains('dark');
-        toggle.checked = isDark;
-        toggle.addEventListener('change', function() {
-            if (toggle.checked) {
-                document.documentElement.classList.add('dark');
-                try { localStorage.setItem('theme', 'dark'); } catch (e) {}
-            } else {
-                document.documentElement.classList.remove('dark');
-                try { localStorage.setItem('theme', 'light'); } catch (e) {}
-            }
+        var root = document.documentElement;
+
+        // Dark mode toggle
+        var toggle = document.getElementById('themeToggle');
+        if (toggle) {
+            toggle.checked = root.classList.contains('dark');
+            toggle.addEventListener('change', function() {
+                root.classList.toggle('dark', toggle.checked);
+                try { localStorage.setItem('theme', toggle.checked ? 'dark' : 'light'); } catch (e) {}
+            });
+        }
+
+        // Design switcher
+        var picks = document.querySelectorAll('[data-design-pick]');
+        function highlight() {
+            var current = root.getAttribute('data-design') || '1';
+            picks.forEach(function(btn) {
+                btn.classList.toggle('is-active', btn.getAttribute('data-design-pick') === current);
+            });
+        }
+        picks.forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var d = btn.getAttribute('data-design-pick');
+                root.setAttribute('data-design', d);
+                try { localStorage.setItem('design', d); } catch (e) {}
+                highlight();
+            });
         });
+        highlight();
     })();
     </script>
 
