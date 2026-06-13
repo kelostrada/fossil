@@ -37,7 +37,8 @@ $extraHead = (isset($extraHead) ? $extraHead : '') . '
     <!-- Tailwind CSS -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <!-- Design theme system (8 designs x light/dark) -->
-    <link href="templates/themes.css" rel="stylesheet">
+    <?php $themesCss = __DIR__ . '/themes.css'; $themesVer = @filemtime($themesCss) ?: time(); ?>
+    <link href="templates/themes.css?v=<?php echo $themesVer; ?>" rel="stylesheet">
     <!-- Alpine.js for mobile menu toggle -->
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <?php if (isset($extraHead)) echo $extraHead; ?>
