@@ -89,7 +89,7 @@ if ($defaultName) {
 ob_start();
 ?>
 
-<div class="container mx-auto p-4">
+<div class="page-container">
     <?php if ($defaultName): ?>
         <div class="bg-white p-4 rounded shadow-md max-w-5xl mx-auto mb-6">
             <div class="flex items-center flex-wrap gap-3">

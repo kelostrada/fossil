@@ -31,8 +31,8 @@ $pageTitle = 'Home - Fossil Stats';
 ob_start();
 ?>
 
-<div class="max-w-4xl mx-auto">
-    <h1 class="text-4xl font-bold text-gray-800 mb-6">Welcome to Fossil Stats</h1>
+<div class="page-container">
+    <?php echo render_page_header('Welcome to Fossil Stats'); ?>
     
     <!-- Currently Online Section -->
     <div class="bg-white rounded-lg shadow-md p-6 mb-6">

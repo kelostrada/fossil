@@ -29,6 +29,7 @@ if (!preg_match('/^[1-8]$/', (string)$design)) $design = '1';
 $_SERVER['PHP_SELF'] = '/online.php';
 $pageTitle = 'UI Test';
 
+require_once dirname(__DIR__, 2) . '/templates/components.php';
 require __DIR__ . '/mock_content.php';
 $content = uitest_mock_content($page);
 
