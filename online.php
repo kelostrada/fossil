@@ -17,7 +17,7 @@ ob_start();
     <h1 class="text-xl md:text-2xl font-bold text-center mb-2">Online Activity</h1>
     <p class="text-center text-xs text-gray-600 mb-4 px-4">
         Online durations per character daily. 
-        <span class="inline-block mt-1 bg-green-200 px-2 py-0.5 rounded text-xs">Green background means currently online</span>
+        <span class="fv-online inline-block mt-1 px-2 py-0.5 rounded text-xs">Green background means currently online</span>
     </p>
 
     <!-- Date Filters Form -->
@@ -80,8 +80,8 @@ ob_start();
             
             $timeDisplay = sprintf('%02d:%02d', $hours, $minutes) . " " . $playerLink . " lv.$level";
             // Store data per date. Online entries have a green background
-            $aggregatedData[$date][] = $isOnline ? 
-                "<div class='bg-green-200 p-0.5 md:p-1 rounded text-xs md:text-sm'>$timeDisplay</div>" : 
+            $aggregatedData[$date][] = $isOnline ?
+                "<div class='fv-online p-0.5 md:p-1 rounded text-xs md:text-sm'>$timeDisplay</div>" :
                 "<div class='p-0.5 md:p-1 text-xs md:text-sm'>$timeDisplay</div>";
         }
     }

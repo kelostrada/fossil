@@ -81,9 +81,13 @@ ob_start();
                     </thead>
                     <tbody>
                         <?php foreach ($topKillers as $index => $killer): ?>
-                            <tr class="hover:bg-gray-50 <?= $index < 3 ? 'bg-yellow-50' : ''; ?>">
+                            <tr class="hover:bg-gray-50 <?= $index < 3 ? 'fv-rank-' . ($index + 1) : ''; ?>">
                                 <td class="border border-gray-300 px-4 py-2 text-sm text-gray-500 font-medium">
-                                    <?= $index + 1 ?>
+                                    <?php if ($index < 3): ?>
+                                        <span class="fv-medal fv-medal-<?= $index + 1 ?>"><?= $index + 1 ?></span>
+                                    <?php else: ?>
+                                        <?= $index + 1 ?>
+                                    <?php endif; ?>
                                 </td>
                                 <td class="border border-gray-300 px-4 py-2">
                                     <a href="chart.php?name=<?= urlencode($killer['name']) ?>" 

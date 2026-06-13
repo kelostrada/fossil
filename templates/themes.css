@@ -49,6 +49,16 @@ html[data-design] {
 
     --hover-bg: #f3f4f6;
 
+    /* status / ranking highlights (online players, top-3 killers) */
+    --hl-online-bg: #15a34a;
+    --hl-online-text: #ffffff;
+    --medal-gold: #e0b341;
+    --medal-silver: #aab1ba;
+    --medal-bronze: #cd7f47;
+    --hl-gold-tint: rgba(224, 179, 65, .18);
+    --hl-silver-tint: rgba(170, 177, 186, .18);
+    --hl-bronze-tint: rgba(205, 127, 71, .18);
+
     --radius-sm: 0.25rem;
     --radius-md: 0.5rem;
     --radius-lg: 0.75rem;
@@ -63,6 +73,10 @@ html[data-design].dark {
     --shadow-sm: 0 1px 2px rgba(0,0,0,.5);
     --shadow-md: 0 4px 14px -2px rgba(0,0,0,.6);
     --shadow-lg: 0 14px 34px -6px rgba(0,0,0,.7);
+    --hl-online-bg: #18a94f;
+    --hl-gold-tint: rgba(224, 179, 65, .26);
+    --hl-silver-tint: rgba(170, 177, 186, .24);
+    --hl-bronze-tint: rgba(205, 127, 71, .26);
 }
 
 /* ---- utility remap ---- */
@@ -156,6 +170,36 @@ html[data-design] main > div { animation: fv-rise .5s cubic-bezier(.2,.7,.3,1) b
     html[data-design] main > div { animation: none; }
 }
 html[data-design] main { padding-bottom: 3.5rem; }
+
+/* ---- status / ranking highlights (theme-aware, guaranteed contrast) ---- */
+/* "currently online" chip — solid so text is always readable */
+html[data-design] .fv-online {
+    background-color: var(--hl-online-bg);
+    color: var(--hl-online-text) !important;
+    border-radius: var(--radius-sm);
+}
+html[data-design] .fv-online a { color: var(--hl-online-text) !important; }
+
+/* top-3 podium rows — translucent medal tint keeps cell text legible */
+html[data-design] .fv-rank-1 { background-color: var(--hl-gold-tint); }
+html[data-design] .fv-rank-2 { background-color: var(--hl-silver-tint); }
+html[data-design] .fv-rank-3 { background-color: var(--hl-bronze-tint); }
+html[data-design] .fv-rank-1:hover { background-color: var(--hl-gold-tint); }
+html[data-design] .fv-rank-2:hover { background-color: var(--hl-silver-tint); }
+html[data-design] .fv-rank-3:hover { background-color: var(--hl-bronze-tint); }
+html[data-design] .fv-rank-1 > td:first-child { border-left: 4px solid var(--medal-gold); }
+html[data-design] .fv-rank-2 > td:first-child { border-left: 4px solid var(--medal-silver); }
+html[data-design] .fv-rank-3 > td:first-child { border-left: 4px solid var(--medal-bronze); }
+
+/* medal rank badge */
+.fv-medal {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 1.6rem; height: 1.6rem; border-radius: 9999px;
+    font-weight: 700; font-size: .8rem; line-height: 1; color: #1a1a1a;
+}
+.fv-medal-1 { background: var(--medal-gold); }
+.fv-medal-2 { background: var(--medal-silver); }
+.fv-medal-3 { background: var(--medal-bronze); color: #fff; }
 
 
 /* ===================================================================== */
