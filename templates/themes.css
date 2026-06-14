@@ -360,6 +360,8 @@ html[data-design="1"].dark {
     --accent-contrast: #111111;
     --accent-soft-bg: #2a2a2a;
     --hover-bg: #2a2a2a;
+    --positive: #4ade80;
+    --negative: #f87171;
 }
 html[data-design="1"] body {
     background-image:
@@ -722,6 +724,10 @@ html[data-design="6"].dark {
     --accent-contrast: #0a0a0a;
     --accent-soft-bg: #2a0d0d;
     --hover-bg: #1a1a1a;
+    /* light mode uses near-black for "increase" (mono aesthetic); on dark that
+       vanished — use light for increase, red for decrease, both readable */
+    --positive: #fafafa;
+    --negative: #ff5c54;
 }
 html[data-design="6"] .lg\:flex-row { flex-direction: column; }
 html[data-design="6"] .mobile-menu,
@@ -920,8 +926,8 @@ html[data-design="8"] h2 { text-transform: uppercase; letter-spacing: .08em; fon
     html[data-design] .mobile-menu {
         position: fixed !important;
         top: 0; left: 0; bottom: 0;
-        width: 16rem !important;
-        max-width: 84vw;
+        width: 90vw !important;
+        max-width: 24rem;
         z-index: 50;
     }
     /* reserve room for the drawer's close button so big-font wordmarks
