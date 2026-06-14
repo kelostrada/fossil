@@ -1,29 +1,43 @@
 <?php
 require_once 'config.php';
+require_once __DIR__ . '/data/spells.php';
 
 $pageTitle = 'Calculators - Fossil Stats';
+
+// Each calculator has its own dedicated URL (?calc=...), so it can be linked
+// directly from the menu and shared.
+$tabs = [
+    'training'  => 'Skill Training',
+    'magic'     => 'Magic Level',
+    'spells'    => 'Spells',
+    'equipment' => 'Equipment Damage',
+];
+$calc = isset($_GET['calc']) ? $_GET['calc'] : 'training';
+if (!isset($tabs[$calc])) {
+    $calc = 'training';
+}
+
+$spells = fossil_spells();
 
 ob_start();
 ?>
 
-<div class="page-container" x-data="{ tab: 'training' }">
+<div class="page-container">
     <?php echo render_page_header('Calculators', 'Tuned for Fossil: no promotions; Sudden Death and Ultimate Explosion at 70% damage. Results update as you type.'); ?>
 
-    <!-- Tabs -->
+    <!-- Calculator nav (real links: each calculator has its own URL) -->
     <div class="flex flex-wrap border-b border-gray-200 mb-6">
-        <button @click="tab = 'training'"
-                :class="tab === 'training' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
-                class="px-4 py-2 border-b-2 font-medium text-sm md:text-base">Skill Training</button>
-        <button @click="tab = 'magic'"
-                :class="tab === 'magic' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
-                class="px-4 py-2 border-b-2 font-medium text-sm md:text-base">Magic Level</button>
-        <button @click="tab = 'damage'"
-                :class="tab === 'damage' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
-                class="px-4 py-2 border-b-2 font-medium text-sm md:text-base">Damage &amp; Healing</button>
+        <?php foreach ($tabs as $key => $label): ?>
+            <a href="?calc=<?php echo $key; ?>"
+               class="px-4 py-2 border-b-2 font-medium text-sm md:text-base <?php echo $calc === $key ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'; ?>">
+                <?php echo $label; ?>
+            </a>
+        <?php endforeach; ?>
     </div>
 
+    <?php if ($calc === 'training'): ?>
     <!-- ===== Skill Training ===== -->
-    <div x-show="tab === 'training'" class="bg-white rounded-lg shadow-md p-6">
+    <div class="bg-white rounded-lg shadow-md p-6">
         <h2 class="text-xl font-semibold mb-1">Skill Training</h2>
         <p class="text-sm text-gray-500 mb-4">Estimates hits/attempts needed to reach a target skill.</p>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -65,9 +79,11 @@ ob_start();
         </div>
         <div id="train-result" class="mt-6 text-gray-700"></div>
     </div>
+    <?php endif; ?>
 
+    <?php if ($calc === 'magic'): ?>
     <!-- ===== Magic Level ===== -->
-    <div x-show="tab === 'magic'" class="bg-white rounded-lg shadow-md p-6">
+    <div class="bg-white rounded-lg shadow-md p-6">
         <h2 class="text-xl font-semibold mb-1">Magic Level</h2>
         <p class="text-sm text-gray-500 mb-4">Estimates mana needed (and time to regenerate it) to reach a target magic level.</p>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -98,10 +114,12 @@ ob_start();
         </div>
         <div id="ml-result" class="mt-6 text-gray-700"></div>
     </div>
+    <?php endif; ?>
 
-    <!-- ===== Damage & Healing ===== -->
-    <div x-show="tab === 'damage'" class="bg-white rounded-lg shadow-md p-6">
-        <h2 class="text-xl font-semibold mb-1">Damage &amp; Healing</h2>
+    <?php if ($calc === 'spells'): ?>
+    <!-- ===== Spells ===== -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold mb-1">Spells</h2>
         <p class="text-sm text-gray-500 mb-4">Full Fossil spellbook with min / max / avg per cast at your level &amp; mlvl. Non-damage / non-heal spells listed without values.</p>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <label class="block text-sm">
@@ -117,9 +135,60 @@ ob_start();
         </div>
         <div id="dmg-result" class="mt-6 overflow-x-auto"></div>
     </div>
+    <?php endif; ?>
+
+    <?php if ($calc === 'equipment'): ?>
+    <!-- ===== Equipment Damage ===== -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold mb-1">Equipment Damage</h2>
+        <p class="text-sm text-gray-500 mb-4">
+            Melee hit, block and armor mitigation using the classic 7.x formulas.
+            Max hit = floor((5&middot;skill + 50) &middot; attack &middot; mode &middot; 99 / 10000); a real hit rolls anywhere from 0 to max (avg ≈ half).
+        </p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <label class="block text-sm">
+                <span class="text-gray-700">Fighting mode</span>
+                <select id="eq-mode" class="mt-1 block w-full border border-gray-300 rounded p-2">
+                    <option value="offensive">Full Attack</option>
+                    <option value="balanced">Balanced</option>
+                    <option value="defensive">Full Defense</option>
+                </select>
+            </label>
+            <span class="hidden sm:block"></span>
+            <label class="block text-sm">
+                <span class="text-gray-700">Melee skill (sword / axe / club / fist)</span>
+                <input type="number" id="eq-skill" value="60" min="10" max="150"
+                       class="mt-1 block w-full border border-gray-300 rounded p-2"/>
+            </label>
+            <label class="block text-sm">
+                <span class="text-gray-700">Weapon attack</span>
+                <input type="number" id="eq-attack" value="40" min="0" max="200"
+                       class="mt-1 block w-full border border-gray-300 rounded p-2"/>
+            </label>
+            <label class="block text-sm">
+                <span class="text-gray-700">Shielding skill</span>
+                <input type="number" id="eq-shielding" value="60" min="0" max="150"
+                       class="mt-1 block w-full border border-gray-300 rounded p-2"/>
+            </label>
+            <label class="block text-sm">
+                <span class="text-gray-700">Shield / weapon defense</span>
+                <input type="number" id="eq-defense" value="30" min="0" max="200"
+                       class="mt-1 block w-full border border-gray-300 rounded p-2"/>
+            </label>
+            <label class="block text-sm">
+                <span class="text-gray-700">Total armor</span>
+                <input type="number" id="eq-armor" value="24" min="0" max="200"
+                       class="mt-1 block w-full border border-gray-300 rounded p-2"/>
+            </label>
+        </div>
+        <div id="eq-result" class="mt-6"></div>
+    </div>
+    <?php endif; ?>
 </div>
 
 <script>
+const SPELLS = <?php echo json_encode($spells); ?>;
+
 // ===== Helpers =====
 function fmt(n) { return Math.round(n).toLocaleString(); }
 function fmtTime(seconds) {
@@ -142,9 +211,6 @@ const VOC_LABEL = {
 };
 
 // ===== Skill Training =====
-// Verified bit-exact against tibiantis.info/count/skill probes (50/50 match):
-//   hits = floor((pct/100) * floor(A * b^(start-10)))
-//          + sum from k=start+1 to end-1 of floor(A * b^(k-10))
 const SKILL_BASE = { fist: 50, melee: 50, distance: 30, shield: 100, fishing: 20 };
 const SKILL_MULT = {
     knight:   { fist: 1.1, melee: 1.1, distance: 1.4, shield: 1.1, fishing: 1.1 },
@@ -159,13 +225,14 @@ const SKILL_LABEL = {
 };
 
 function calcTraining() {
+    const out = document.getElementById('train-result');
+    if (!out) return;
     const voc = document.getElementById('train-voc').value;
     const skill = document.getElementById('train-skill').value;
     const start = parseInt(document.getElementById('train-start').value, 10);
     const end = parseInt(document.getElementById('train-end').value, 10);
     const pctRaw = document.getElementById('train-pct').value;
     const pct = pctRaw === '' ? 100 : parseInt(pctRaw, 10);
-    const out = document.getElementById('train-result');
 
     if (!Number.isFinite(start) || !Number.isFinite(end) || !Number.isFinite(pct)) return;
     if (end <= start || pct < 0 || pct > 100) return;
@@ -193,21 +260,18 @@ function calcTraining() {
 }
 
 // ===== Magic Level =====
-// Verified bit-exact against tibiantis.info/count/magic probes:
-//   mana = round((pct/100) * 400 * b^start + Σ 400 * b^m  for m=start+1..end-1)
-// Fossil = no promotion. (Promotion would lower Knight 3.0→2.0 and Paladin 1.4→1.1.)
 const MAGIC_BASE_EXP = { sorcerer: 1.1, druid: 1.1, paladin: 1.4, knight: 3.0 };
 const MAGIC_CAP = { sorcerer: 140, druid: 140, paladin: 30, knight: 12 };
-// Mana regenerated per minute, unpromoted (Fossil):
 const REGEN_PER_MIN = { knight: 5, paladin: 7.5, druid: 10, sorcerer: 10 };
 
 function calcMagic() {
+    const out = document.getElementById('ml-result');
+    if (!out) return;
     const voc = document.getElementById('ml-voc').value;
     const start = parseInt(document.getElementById('ml-start').value, 10);
     const end = parseInt(document.getElementById('ml-end').value, 10);
     const pctRaw = document.getElementById('ml-pct').value;
     const pct = pctRaw === '' ? 100 : parseInt(pctRaw, 10);
-    const out = document.getElementById('ml-result');
 
     if (!Number.isFinite(start) || !Number.isFinite(end) || !Number.isFinite(pct)) return;
     if (end <= start || pct < 0 || pct > 100) return;
@@ -237,62 +301,14 @@ function calcMagic() {
     `;
 }
 
-// ===== Damage & Healing =====
-// Fossil spell list cross-referenced with https://fossilots.fandom.com/wiki/Spells.
-// Damage/heal coefficients per spell from tibiantis.xyz calc.js.
+// ===== Spells (damage / healing per cast) =====
 // Power = (mlvl*3 + lvl*2) / 100; per-spell = max(power * coeff, coeff floor).
 // Fossil: Sudden Death and Ultimate Explosion at 70% damage (fossilMul: 0.7).
-const SPELLS = [
-    { name: 'Light',                  inc: 'utevo lux',                mana: 20,   ml: 0,  voc: 'All' },
-    { name: 'Find Person',            inc: 'exiva "name"',             mana: 10,   ml: 0,  voc: 'All' },
-    { name: 'Create Food',            inc: 'exevo pan',                mana: 30,   ml: 0,  voc: 'D/P' },
-    { name: 'Light Healing',          inc: 'exura',                    mana: 25,   ml: 1,  voc: 'All',     dmg: { min: 10,  max: 30,  type: 'heal' } },
-    { name: 'Light Magic Missile',    inc: 'adori',                    mana: 40,   ml: 1,  voc: 'S/D/P',   dmg: { min: 10,  max: 20,  type: 'dmg'  } },
-    { name: 'Antidote',               inc: 'exana pox',                mana: 30,   ml: 2,  voc: 'All' },
-    { name: 'Conjure Arrow',          inc: 'exevo con',                mana: 40,   ml: 2,  voc: 'P' },
-    { name: 'Poison Field',           inc: 'adevo grav pox',           mana: 50,   ml: 2,  voc: 'S/D' },
-    { name: 'Intense Healing',        inc: 'exura gran',               mana: 40,   ml: 2,  voc: 'S/D/P',   dmg: { min: 20,  max: 60,  type: 'heal' } },
-    { name: 'Great Light',            inc: 'utevo gran lux',           mana: 60,   ml: 3,  voc: 'All' },
-    { name: 'Fire Field',             inc: 'adevo grav flam',          mana: 60,   ml: 3,  voc: 'S/D' },
-    { name: 'Heavy Magic Missile',    inc: 'adori gran',               mana: 70,   ml: 3,  voc: 'S/D/P',   dmg: { min: 20,  max: 40,  type: 'dmg'  } },
-    { name: 'Magic Shield',           inc: 'utamo vita',               mana: 50,   ml: 4,  voc: 'S/D/P' },
-    { name: 'Intense Healing Rune',   inc: 'adura gran',               mana: 60,   ml: 4,  voc: 'D',       dmg: { min: 40,  max: 100, type: 'heal' } },
-    { name: 'Antidote Rune',          inc: 'adana pox',                mana: 50,   ml: 4,  voc: 'D' },
-    { name: 'Broadcast',              inc: 'exisa mas "text"',         mana: 30,   ml: 4,  voc: 'All' },
-    { name: 'Fireball',               inc: 'adori flam',               mana: 60,   ml: 5,  voc: 'S/D/P',   dmg: { min: 15,  max: 25,  type: 'dmg'  } },
-    { name: 'Conjure Poisoned Arrow', inc: 'exevo con pox',            mana: 70,   ml: 5,  voc: 'P' },
-    { name: 'Energy Field',           inc: 'adevo grav vis',           mana: 80,   ml: 5,  voc: 'S/D' },
-    { name: 'Destroy Field',          inc: 'adito grav',               mana: 60,   ml: 6,  voc: 'S/D/P' },
-    { name: 'Fire Wave',              inc: 'exevo flam hur',           mana: 80,   ml: 7,  voc: 'S',       dmg: { min: 20,  max: 40,  type: 'dmg'  } },
-    { name: 'Ultimate Healing',       inc: 'exura vita',               mana: 80,   ml: 8,  voc: 'S/D/P',   dmg: { min: 200, max: 300, type: 'heal' } },
-    { name: 'Fire Bomb',              inc: 'adevo mas flam',           mana: 150,  ml: 9,  voc: 'S/D' },
-    { name: 'Great Fireball',         inc: 'adori gran flam',          mana: 120,  ml: 9,  voc: 'S/D',     dmg: { min: 35,  max: 65,  type: 'dmg'  } },
-    { name: 'Creature Illusion',      inc: 'utevo res ina "monster"',  mana: 100,  ml: 10, voc: 'S/D' },
-    { name: 'Energy Beam',            inc: 'exevo vis lux',            mana: 100,  ml: 10, voc: 'S',       dmg: { min: 40,  max: 80,  type: 'dmg'  } },
-    { name: 'Explosive Arrow',        inc: 'exevo con flam',           mana: 120,  ml: 10, voc: 'P' },
-    { name: 'Burst Arrow',            inc: '(ammo)',                   mana: null, ml: 0,  voc: 'P',       dmg: { min: 0,   max: 60,  type: 'dmg'  } },
-    { name: 'Convince Creature',      inc: 'adeta sio',                mana: 100,  ml: 10, voc: 'D' },
-    { name: 'Ultimate Healing Rune',  inc: 'adura vita',               mana: 100,  ml: 11, voc: 'D',       dmg: { min: 250, max: 250, type: 'heal' } },
-    { name: 'Chameleon',              inc: 'adevo ina',                mana: 150,  ml: 11, voc: 'D' },
-    { name: 'Poison Wall',            inc: 'adevo mas grav pox',       mana: 160,  ml: 11, voc: 'S/D' },
-    { name: 'Explosion',              inc: 'adevo mas hur',            mana: 180,  ml: 12, voc: 'S/D',     dmg: { min: 20,  max: 100, type: 'dmg'  } },
-    { name: 'Fire Wall',              inc: 'adevo mas grav flam',      mana: 200,  ml: 13, voc: 'S/D' },
-    { name: 'Great Energy Beam',      inc: 'exevo gran vis lux',       mana: 200,  ml: 14, voc: 'S',       dmg: { min: 40,  max: 200, type: 'dmg'  } },
-    { name: 'Invisible',              inc: 'utana vid',                mana: 210,  ml: 15, voc: 'S/D/P' },
-    { name: 'Summon Creature',        inc: 'utevo res "monster"',      mana: null, ml: 16, voc: 'S/D' },
-    { name: 'Great Energy Bomb',      inc: 'adevo gran mas grav vis',  mana: 270,  ml: 18, voc: '—' },
-    { name: 'Energy Wall',            inc: 'adevo mas grav vis',       mana: 250,  ml: 18, voc: 'S/D' },
-    { name: 'Energy Wave',            inc: 'exevo mort hur',           mana: 250,  ml: 20, voc: 'S',       dmg: { min: 100, max: 200, type: 'dmg'  } },
-    { name: 'Sudden Death Rune',      inc: 'adori vita vis',           mana: 220,  ml: 25, voc: 'S',       dmg: { min: 130, max: 170, type: 'dmg', fossilMul: 0.7 } },
-    { name: 'Mass Poison',            inc: 'exevo gran mas pox',       mana: 210,  ml: 26, voc: '—' },
-    { name: 'Ultimate Explosion',     inc: 'exevo gran mas vis',       mana: 350,  ml: 30, voc: 'S/D',     dmg: { min: 200, max: 300, type: 'dmg', fossilMul: 0.7 } }
-];
-
 function calcDamage() {
+    const out = document.getElementById('dmg-result');
+    if (!out) return;
     const lvl = parseInt(document.getElementById('dmg-lvl').value, 10);
     const mlvl = parseInt(document.getElementById('dmg-mlvl').value, 10);
-    const out = document.getElementById('dmg-result');
-
     if (!Number.isFinite(lvl) || !Number.isFinite(mlvl) || lvl < 1 || mlvl < 0) return;
 
     const power = (mlvl * 3 + lvl * 2) / 100;
@@ -358,10 +374,66 @@ function calcDamage() {
     `;
 }
 
-// ===== Wire up: auto-calc on any input change =====
+// ===== Equipment Damage (classic 7.x melee formulas) =====
+// max hit  = floor((5*skill + 50) * attack  * atkMode * 99 / 10000)
+// max block= floor((5*shield+ 50) * defense * defMode * 99 / 10000)
+// armor reduces a hit by floor(arm/2) .. 2*floor(arm/2)-1 (arm 1 => 1, arm 0 => 0)
+const ATK_MODE = { offensive: 1.2, balanced: 1.0, defensive: 0.6 };
+const DEF_MODE = { offensive: 0.6, balanced: 1.0, defensive: 1.8 };
+
+function armorReduction(arm) {
+    if (!Number.isFinite(arm) || arm <= 0) return [0, 0];
+    if (arm <= 3) return [1, 1];
+    const half = Math.floor(arm / 2);
+    return [half, 2 * half - 1];
+}
+
+function calcEquipment() {
+    const out = document.getElementById('eq-result');
+    if (!out) return;
+    const mode = document.getElementById('eq-mode').value;
+    const skill = parseInt(document.getElementById('eq-skill').value, 10);
+    const atk = parseInt(document.getElementById('eq-attack').value, 10);
+    const shield = parseInt(document.getElementById('eq-shielding').value, 10);
+    const def = parseInt(document.getElementById('eq-defense').value, 10);
+    const arm = parseInt(document.getElementById('eq-armor').value, 10);
+
+    const atkMode = ATK_MODE[mode], defMode = DEF_MODE[mode];
+
+    const maxHit = (Number.isFinite(skill) && Number.isFinite(atk))
+        ? Math.floor((5 * skill + 50) * atk * atkMode * 99 / 10000) : 0;
+    const avgHit = Math.round(maxHit * 0.5);
+    const maxBlock = (Number.isFinite(shield) && Number.isFinite(def))
+        ? Math.floor((5 * shield + 50) * def * defMode * 99 / 10000) : 0;
+    const [redMin, redMax] = armorReduction(arm);
+
+    function stat(label, value, sub) {
+        return `
+            <div class="bg-gray-50 rounded-lg p-4">
+                <div class="text-xs uppercase tracking-wide text-gray-500">${label}</div>
+                <div class="text-2xl font-bold text-gray-800 mt-1">${value}</div>
+                ${sub ? `<div class="text-xs text-gray-500 mt-1">${sub}</div>` : ''}
+            </div>`;
+    }
+
+    out.innerHTML = `
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            ${stat('Melee hit', `0&ndash;${fmt(maxHit)}`, `avg ≈ ${fmt(avgHit)} per hit`)}
+            ${stat('Max block', fmt(maxBlock), 'damage absorbed by defense')}
+            ${stat('Armor reduction', `${fmt(redMin)}&ndash;${fmt(redMax)}`, 'subtracted from each hit that lands')}
+            ${stat('Effective hit vs target', `~${fmt(Math.max(0, avgHit - redMin))}+`, 'your avg hit minus their min armor')}
+        </div>
+        <p class="text-xs text-gray-400 mt-3">
+            Offensive/Balanced/Defensive change attack (1.2 / 1.0 / 0.6) and defense (0.6 / 1.0 / 1.8) multipliers.
+            Bows/crossbows have 0 defense. Odd armor points are rounded down.
+        </p>`;
+}
+
+// ===== Wire up: auto-calc on any input change (guards missing sections) =====
 function wire(ids, fn) {
     for (const id of ids) {
         const el = document.getElementById(id);
+        if (!el) return;
         el.addEventListener('input', fn);
         el.addEventListener('change', fn);
     }
@@ -369,9 +441,10 @@ function wire(ids, fn) {
 wire(['train-voc', 'train-skill', 'train-start', 'train-end', 'train-pct'], calcTraining);
 wire(['ml-voc', 'ml-start', 'ml-end', 'ml-pct'], calcMagic);
 wire(['dmg-lvl', 'dmg-mlvl'], calcDamage);
-calcTraining(); calcMagic(); calcDamage();
+wire(['eq-mode', 'eq-skill', 'eq-attack', 'eq-shielding', 'eq-defense', 'eq-armor'], calcEquipment);
+calcTraining(); calcMagic(); calcDamage(); calcEquipment();
 
-// ===== Copy spell incantations to clipboard (delegated; rows re-render) =====
+// ===== Copy incantations to clipboard (delegated; rows re-render) =====
 (function () {
     const CHECK = '<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>';
     function fallbackCopy(text) {
