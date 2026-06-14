@@ -244,6 +244,23 @@ html[data-design] .nav-submenu > li > a { padding-left: 2rem; font-size: .95em; 
     }
 }
 
+/* Top-level group labels should read as the header. On themes that uppercase
+   their nav links, the toggle (a <button>, not an <a>) missed that styling and
+   ended up looking less important than its uppercased subitems — match it. */
+html[data-design="1"] .nav-group-toggle,
+html[data-design="2"] .nav-group-toggle,
+html[data-design="3"] .nav-group-toggle,
+html[data-design="4"] .nav-group-toggle,
+html[data-design="6"] .nav-group-toggle,
+html[data-design="8"] .nav-group-toggle {
+    text-transform: uppercase; letter-spacing: .04em; font-weight: 700;
+}
+
+/* Editorial marks the active submenu item with a left accent bar instead of a
+   full-row bottom underline (which spanned the whole accordion row). */
+html[data-design="2"] .nav-submenu > li > a { border-bottom: none !important; border-left: 3px solid transparent; }
+html[data-design="2"] .nav-submenu > li > a.bg-blue-100 { border-left-color: var(--accent); }
+
 @media (min-width: 1024px) {
     /* masthead designs: top-level groups in a row, submenus as dropdowns */
     html[data-design="2"] .nav-group,
