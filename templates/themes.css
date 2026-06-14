@@ -169,7 +169,7 @@ html[data-design] main > div { animation: fv-rise .5s cubic-bezier(.2,.7,.3,1) b
 @media (prefers-reduced-motion: reduce) {
     html[data-design] main > div { animation: none; }
 }
-html[data-design] main { padding-bottom: 3.5rem; }
+html[data-design] main { padding-bottom: 2rem; }
 
 /* ---- status / ranking highlights (theme-aware, guaranteed contrast) ---- */
 /* "currently online" chip — solid so text is always readable */
@@ -946,38 +946,28 @@ html.dark .theme-toggle-track { background-color: var(--accent); }
 html.dark .theme-toggle-thumb { transform: translateX(20px); }
 
 /* ===================================================================== */
-/* Design switcher — subtle fixed footer bar                             */
+/* Theme picker (the "Theme" menu group: swatch + name + votes + +1)     */
 /* ===================================================================== */
-.design-switcher {
-    position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); z-index: 9999;
-    display: flex; align-items: center; gap: 7px; padding: 7px 12px;
-    background: rgba(20,20,20,.82); color: #fff;
-    -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
-    border: 1px solid rgba(255,255,255,.15); border-bottom: none;
-    border-top-left-radius: 12px; border-top-right-radius: 12px;
-    box-shadow: 0 -4px 20px rgba(0,0,0,.3);
-    opacity: .32; transition: opacity .2s ease; max-width: 96vw; overflow-x: auto;
-    font-family: ui-sans-serif, system-ui, sans-serif;
+html[data-design] .theme-row { display: flex; align-items: center; gap: .5rem; }
+html[data-design] .theme-pick {
+    display: flex; align-items: center; gap: .6rem; flex: 1 1 auto; min-width: 0;
+    padding: .4rem .75rem; border: 0; background: transparent; cursor: pointer;
+    border-radius: var(--radius-md); text-align: left; color: var(--text-primary);
+    font: inherit;
 }
-.design-switcher:hover, .design-switcher:focus-within { opacity: 1; }
-.design-switcher-label {
-    font-size: 9px; letter-spacing: .14em; text-transform: uppercase;
-    color: rgba(255,255,255,.55); margin-right: 2px; white-space: nowrap;
+html[data-design] .theme-pick:hover { background-color: var(--hover-bg); }
+html[data-design] .theme-pick.is-active { color: var(--accent-strong); font-weight: 700; }
+html[data-design] .theme-swatch {
+    width: 16px; height: 16px; border-radius: 4px; flex-shrink: 0;
+    border: 1px solid rgba(0, 0, 0, .2); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .15);
 }
-.design-switcher button {
-    position: relative; width: 22px; height: 22px; border-radius: 6px;
-    border: 1px solid rgba(255,255,255,.25); cursor: pointer; padding: 0;
-    font-size: 0; background: var(--sw, #888);
-    transition: transform .12s ease, box-shadow .12s ease; flex-shrink: 0;
+html[data-design] .theme-name { flex: 1 1 auto; white-space: nowrap; }
+html[data-design] .theme-votes { color: var(--text-muted); font-size: .85em; }
+html[data-design] .theme-vote {
+    flex-shrink: 0; cursor: pointer; font: inherit; font-size: .72rem; font-weight: 700;
+    line-height: 1; padding: .25rem .55rem; border-radius: 9999px;
+    border: 1px solid var(--border); color: var(--text-secondary); background: transparent;
+    transition: color .15s, border-color .15s;
 }
-.design-switcher button:hover { transform: translateY(-3px) scale(1.12); }
-.design-switcher button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
-.design-switcher button.is-active { box-shadow: 0 0 0 2px rgba(20,20,20,.82), 0 0 0 4px #fff; }
-.design-switcher button[data-design-pick="1"] { --sw: #ff4d00; }
-.design-switcher button[data-design-pick="2"] { --sw: #9c2b1b; }
-.design-switcher button[data-design-pick="3"] { --sw: #39ff14; }
-.design-switcher button[data-design-pick="4"] { --sw: linear-gradient(135deg,#d400ff,#00d4ff); }
-.design-switcher button[data-design-pick="5"] { --sw: #ff7eb6; }
-.design-switcher button[data-design-pick="6"] { --sw: #e60023; }
-.design-switcher button[data-design-pick="7"] { --sw: #c2683a; }
-.design-switcher button[data-design-pick="8"] { --sw: linear-gradient(135deg,#0e3b32,#d4af52); }
+html[data-design] .theme-vote:hover { border-color: var(--accent); color: var(--accent); }
+html[data-design] .theme-vote.voted { color: var(--positive); border-color: var(--positive); cursor: default; }

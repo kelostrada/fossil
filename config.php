@@ -27,6 +27,22 @@ function loadEnv($path = '.env') {
 // Load environment variables
 loadEnv();
 
+// Assign every visitor a long-lived anonymous id (used to dedupe theme votes;
+// there's no auth, so we just trust the browser). Set before any output.
+if (empty($_COOKIE['fv_voter'])) {
+    try {
+        $fvVoter = bin2hex(random_bytes(16));
+    } catch (Throwable $e) {
+        $fvVoter = md5(uniqid('', true));
+    }
+    setcookie('fv_voter', $fvVoter, [
+        'expires'  => time() + 10 * 365 * 24 * 3600,
+        'path'     => '/',
+        'samesite' => 'Lax',
+    ]);
+    $_COOKIE['fv_voter'] = $fvVoter;
+}
+
 // Database connection function
 function getDatabaseConnection() {
     static $conn = null;

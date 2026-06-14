@@ -62,6 +62,7 @@ check "wiki_spells.php"                     "Spells"        "Fatal"
 check "wiki_summon.php"                     "Summon Creature"
 check "chart.php?name=Robert"              "Robert"
 check "getData.php?person=Robert&startDate=2024-06-13&endDate=2025-06-13" "timestamps"
+check "vote_theme.php?action=status"      "counts"
 check "search_characters.php?q=Rob"        "["
 echo "------------------------------------------------------------"
 if [ "$fails" -eq 0 ]; then

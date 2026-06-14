@@ -177,6 +177,16 @@ $extraHead = (isset($extraHead) ? $extraHead : '') . '
                 foreach ($menuGroups as $g => $gi) {
                     foreach ($gi as $it) { if ($itemActive($it)) { $activeGroupName = $g; break 2; } }
                 }
+                $themeDesigns = [
+                    1 => ['name' => 'Brutalist', 'sw' => '#ff4d00'],
+                    2 => ['name' => 'Editorial', 'sw' => '#9c2b1b'],
+                    3 => ['name' => 'Terminal',  'sw' => '#39ff14'],
+                    4 => ['name' => 'Cyberpunk', 'sw' => 'linear-gradient(135deg,#d400ff,#00d4ff)'],
+                    5 => ['name' => 'Clay',      'sw' => '#ff7eb6'],
+                    6 => ['name' => 'Swiss',     'sw' => '#e60023'],
+                    7 => ['name' => 'Organic',   'sw' => '#c2683a'],
+                    8 => ['name' => 'Art Deco',  'sw' => 'linear-gradient(135deg,#0e3b32,#d4af52)'],
+                ];
                 ?>
                 <nav x-data="{ openGroup: navHoverMode() ? '' : '<?php echo $activeGroupName; ?>' }">
                     <ul class="space-y-1">
@@ -209,6 +219,31 @@ $extraHead = (isset($extraHead) ? $extraHead : '') . '
                                 </ul>
                             </li>
                         <?php endforeach; ?>
+                        <li class="nav-group theme-group"
+                            @mouseenter="if (navHoverMode()) openGroup = 'Theme'"
+                            @mouseleave="if (navHoverMode()) openGroup = ''">
+                            <button type="button" @click="if (!navHoverMode()) openGroup = (openGroup === 'Theme' ? '' : 'Theme')"
+                                    class="nav-group-toggle py-2 px-4 rounded-lg transition-colors duration-200 text-gray-700 hover:bg-gray-100 hover:text-gray-900">
+                                <span>Theme</span>
+                                <svg class="nav-caret" :class="openGroup === 'Theme' ? 'is-open' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+                            <ul class="nav-submenu space-y-1" x-show="openGroup === 'Theme'" x-collapse x-cloak>
+                                <?php foreach ($themeDesigns as $num => $d): ?>
+                                    <li class="theme-row">
+                                        <button type="button" class="theme-pick" data-design-pick="<?php echo $num; ?>" title="Use the <?php echo htmlspecialchars($d['name']); ?> theme">
+                                            <span class="theme-swatch" style="background: <?php echo $d['sw']; ?>;"></span>
+                                            <span class="theme-name"><?php echo htmlspecialchars($d['name']); ?></span>
+                                            <span class="theme-votes" data-votes="<?php echo $num; ?>"></span>
+                                        </button>
+                                        <button type="button" class="theme-vote" data-vote="<?php echo $num; ?>"
+                                                aria-label="Vote for the <?php echo htmlspecialchars($d['name']); ?> theme"
+                                                title="Vote for the <?php echo htmlspecialchars($d['name']); ?> theme">+1</button>
+                                    </li>
+                                <?php endforeach; ?>
+                            </ul>
+                        </li>
                     </ul>
                 </nav>
             </div>
@@ -233,32 +268,9 @@ $extraHead = (isset($extraHead) ? $extraHead : '') . '
         </main>
     </div>
 
-    <!-- Design switcher (subtle footer bar) -->
-    <?php
-    $designs = [
-        '1' => 'Classic',
-        '2' => 'Ocean',
-        '3' => 'Sunset',
-        '4' => 'Forest',
-        '5' => 'Midnight',
-        '6' => 'Mono',
-        '7' => 'Terminal',
-        '8' => 'Material',
-    ];
-    ?>
-    <div class="design-switcher" role="group" aria-label="Choose a design theme">
-        <span class="design-switcher-label">Theme</span>
-        <?php foreach ($designs as $num => $name) { ?>
-            <button type="button"
-                    data-design-pick="<?php echo $num; ?>"
-                    title="<?php echo $num . ' — ' . $name; ?>"
-                    aria-label="<?php echo $name; ?> theme"><?php echo $name; ?></button>
-        <?php } ?>
-    </div>
-
     <?php if (isset($extraScripts)) echo $extraScripts; ?>
 
-    <!-- Dark mode + design switcher wiring -->
+    <!-- Dark mode toggle + theme switch/voting wiring -->
     <script>
     (function() {
         var root = document.documentElement;
@@ -273,7 +285,7 @@ $extraHead = (isset($extraHead) ? $extraHead : '') . '
             });
         }
 
-        // Design switcher
+        // Switch theme (apply design + persist), highlight the active one
         var picks = document.querySelectorAll('[data-design-pick]');
         function highlight() {
             var current = root.getAttribute('data-design') || '1';
@@ -290,6 +302,34 @@ $extraHead = (isset($extraHead) ? $extraHead : '') . '
             });
         });
         highlight();
+
+        // Theme voting (counts + one vote per theme per browser)
+        function renderVotes(counts, voted) {
+            document.querySelectorAll('.theme-votes').forEach(function(el) {
+                var d = el.getAttribute('data-votes');
+                var n = (counts && counts[d] != null) ? counts[d] : 0;
+                el.textContent = '(' + n + ')';
+            });
+            (voted || []).forEach(function(d) {
+                var b = document.querySelector('.theme-vote[data-vote="' + d + '"]');
+                if (b) { b.classList.add('voted'); b.disabled = true; b.textContent = '✓'; b.title = 'You already voted for this theme'; }
+            });
+        }
+        document.querySelectorAll('.theme-vote').forEach(function(b) {
+            b.addEventListener('click', function(e) {
+                e.stopPropagation();           // don't switch theme or close the menu
+                if (b.disabled) return;
+                var fd = new FormData(); fd.append('design', b.getAttribute('data-vote'));
+                fetch('vote_theme.php', { method: 'POST', body: fd })
+                    .then(function(r) { return r.json(); })
+                    .then(function(res) { renderVotes(res.counts, res.voted); })
+                    .catch(function() {});
+            });
+        });
+        fetch('vote_theme.php?action=status')
+            .then(function(r) { return r.json(); })
+            .then(function(res) { renderVotes(res.counts, res.voted); })
+            .catch(function() {});
     })();
     </script>
 
