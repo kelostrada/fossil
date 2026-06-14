@@ -381,7 +381,9 @@ html[data-design="2"] .lg\:w-64 { width: 100% !important; box-shadow: none !impo
     html[data-design="2"] .mobile-menu nav ul { display: flex; flex-wrap: wrap; gap: .3rem 1.25rem; }
     html[data-design="2"] .mobile-menu nav a { white-space: nowrap; }
     html[data-design="2"] .mobile-menu .space-y-2 > * + * { margin-top: 0; }
+    /* match the content width to the masthead so the nav lines up with it */
     html[data-design="2"] main > div { max-width: 1280px; margin: 0 auto; }
+    html[data-design="2"] .page-container { max-width: none; }
 }
 html[data-design="2"] h1 { font-weight: 600; font-style: italic; letter-spacing: -.01em; }
 html[data-design="2"] nav a {
