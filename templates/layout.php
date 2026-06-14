@@ -126,37 +126,68 @@ $extraHead = (isset($extraHead) ? $extraHead : '') . '
                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
 
+                <?php
+                $menuGroups = [
+                    'Stats' => [
+                        ['url' => 'index.php',                 'label' => 'Home',                 'file' => 'index.php'],
+                        ['url' => 'online.php',                'label' => 'Online Stats',         'file' => 'online.php'],
+                        ['url' => 'advancements.php',          'label' => 'Recent Advancements',  'file' => 'advancements.php'],
+                        ['url' => 'recent_deaths.php',         'label' => 'Recent Deaths',        'file' => 'recent_deaths.php'],
+                        ['url' => 'highscores.php',            'label' => 'Highscores',           'file' => 'highscores.php'],
+                        ['url' => 'playerkillers.php',         'label' => 'Player Killers',       'file' => 'playerkillers.php'],
+                        ['url' => 'environmental_killers.php', 'label' => 'Deadliest Creatures',  'file' => 'environmental_killers.php'],
+                    ],
+                    'Calculators' => [
+                        ['url' => 'calculators.php?calc=training',  'label' => 'Skill Training',    'file' => 'calculators.php', 'calc' => 'training'],
+                        ['url' => 'calculators.php?calc=magic',     'label' => 'Magic Level',       'file' => 'calculators.php', 'calc' => 'magic'],
+                        ['url' => 'calculators.php?calc=spells',    'label' => 'Spells',            'file' => 'calculators.php', 'calc' => 'spells'],
+                        ['url' => 'calculators.php?calc=equipment', 'label' => 'Equipment Damage',  'file' => 'calculators.php', 'calc' => 'equipment'],
+                    ],
+                    'Wiki' => [
+                        ['url' => 'wiki_spells.php', 'label' => 'Spells',          'file' => 'wiki_spells.php'],
+                        ['url' => 'wiki_summon.php', 'label' => 'Summon Creature', 'file' => 'wiki_summon.php'],
+                    ],
+                ];
+                $currentFile = basename($_SERVER['PHP_SELF']);
+                $currentCalc = isset($_GET['calc']) ? $_GET['calc'] : 'training';
+                $itemActive = function ($item) use ($currentFile, $currentCalc) {
+                    if ($item['file'] !== $currentFile) return false;
+                    return isset($item['calc']) ? $item['calc'] === $currentCalc : true;
+                };
+                ?>
                 <nav>
-                    <ul class="space-y-2">
-                        <?php
-                        $menuItems = [
-                            'index.php' => 'Home',
-                            'online.php' => 'Online Stats',
-                            'advancements.php' => 'Recent Advancements',
-                            'recent_deaths.php' => 'Recent Deaths',
-                            'highscores.php' => 'Highscores',
-                            'playerkillers.php' => 'Player Killers',
-                            'environmental_killers.php' => 'Deadliest Creatures',
-                            'calculators.php' => 'Calculators'
-                        ];
-                        
-                        $currentPage = basename($_SERVER['PHP_SELF']);
-                        foreach ($menuItems as $page => $label) {
-                            $isActive = $currentPage === $page;
+                    <ul class="space-y-1">
+                        <?php foreach ($menuGroups as $group => $items):
+                            $groupActive = false;
+                            foreach ($items as $it) { if ($itemActive($it)) { $groupActive = true; break; } }
                             ?>
-                            <li>
-                                <a href="<?php echo $page; ?>" 
-                                   @click="mobileMenuOpen = false"
-                                   class="block py-2 px-4 rounded-lg transition-colors duration-200 
-                                          <?php echo $isActive 
-                                                ? 'bg-blue-100 text-blue-700' 
-                                                : 'hover:bg-gray-100 text-gray-700 hover:text-gray-900'; ?>">
-                                    <?php echo $label; ?>
-                                </a>
+                            <li class="nav-group" x-data="{ open: <?php echo $groupActive ? 'true' : 'false'; ?> }"
+                                @mouseenter="open = true" @mouseleave="open = false">
+                                <button type="button" @click="open = !open"
+                                        class="nav-group-toggle py-2 px-4 rounded-lg transition-colors duration-200 text-gray-700 hover:bg-gray-100 hover:text-gray-900">
+                                    <span><?php echo $group; ?></span>
+                                    <svg class="nav-caret" :class="open ? 'is-open' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+                                <ul class="nav-submenu space-y-1" x-show="open" x-cloak>
+                                    <?php foreach ($items as $it):
+                                        $isActive = $itemActive($it);
+                                        ?>
+                                        <li>
+                                            <a href="<?php echo $it['url']; ?>"
+                                               @click="mobileMenuOpen = false"
+                                               class="block py-1.5 px-4 rounded-lg transition-colors duration-200
+                                                      <?php echo $isActive
+                                                            ? 'bg-blue-100 text-blue-700'
+                                                            : 'hover:bg-gray-100 text-gray-700 hover:text-gray-900'; ?>">
+                                                <?php echo $it['label']; ?>
+                                            </a>
+                                        </li>
+                                    <?php endforeach; ?>
+                                </ul>
                             </li>
-                            <?php
-                        }
-                        ?>
+                        <?php endforeach; ?>
                     </ul>
                 </nav>
             </div>
@@ -247,6 +278,35 @@ $extraHead = (isset($extraHead) ? $extraHead : '') . '
             });
         });
         highlight();
+    })();
+    </script>
+
+    <!-- Global copy-to-clipboard: any element with [data-copy] (icon-only buttons) -->
+    <script>
+    (function () {
+        var CHECK = '<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>';
+        function fallbackCopy(text) {
+            var ta = document.createElement('textarea');
+            ta.value = text; ta.setAttribute('readonly', '');
+            ta.style.position = 'fixed'; ta.style.opacity = '0';
+            document.body.appendChild(ta); ta.select();
+            try { document.execCommand('copy'); } catch (e) {}
+            document.body.removeChild(ta);
+        }
+        document.addEventListener('click', function (e) {
+            var btn = e.target.closest('[data-copy]');
+            if (!btn) return;
+            var text = btn.getAttribute('data-copy') || '';
+            var orig = btn.innerHTML;
+            function flash() {
+                btn.innerHTML = CHECK;
+                btn.classList.add('text-green-600');
+                setTimeout(function () { btn.innerHTML = orig; btn.classList.remove('text-green-600'); }, 1200);
+            }
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(flash, function () { fallbackCopy(text); flash(); });
+            } else { fallbackCopy(text); flash(); }
+        });
     })();
     </script>
 

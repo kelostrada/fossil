@@ -222,6 +222,45 @@ html[data-design="8"].dark { --hl-online-bg: #3f8a64; --hl-online-text: #07211c;
 html[data-design] .section-header { background-color: var(--accent); color: var(--accent-contrast); }
 html[data-design] .section-header a { color: var(--accent-contrast); }
 
+/* ---- grouped navigation (Stats / Calculators / Wiki) ---- */
+[x-cloak] { display: none !important; }
+html[data-design] .nav-group-toggle {
+    display: flex; align-items: center; justify-content: space-between; gap: .5rem;
+    width: 100%; text-align: left; cursor: pointer; background: transparent;
+    font: inherit; border: 0;
+}
+html[data-design] .nav-caret { width: 1rem; height: 1rem; flex-shrink: 0; opacity: .55; transition: transform .2s; }
+html[data-design] .nav-caret.is-open { transform: rotate(180deg); }
+html[data-design] .nav-submenu { display: block; }
+html[data-design] .nav-submenu > li > a { padding-left: 2rem; font-size: .95em; }
+
+@media (min-width: 1024px) {
+    /* masthead designs: top-level groups in a row, submenus as dropdowns */
+    html[data-design="2"] .nav-group,
+    html[data-design="6"] .nav-group,
+    html[data-design="8"] .nav-group { position: relative; }
+    html[data-design="2"] .nav-group-toggle,
+    html[data-design="6"] .nav-group-toggle,
+    html[data-design="8"] .nav-group-toggle {
+        width: auto; justify-content: flex-start; gap: .3rem;
+        text-transform: uppercase; white-space: nowrap;
+    }
+    html[data-design="2"] .mobile-menu .nav-submenu,
+    html[data-design="6"] .mobile-menu .nav-submenu,
+    html[data-design="8"] .mobile-menu .nav-submenu {
+        display: block; position: absolute; top: 100%; left: 0; z-index: 60;
+        min-width: 12rem; padding: .4rem; margin-top: .35rem;
+        background-color: var(--bg-surface);
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow-lg);
+    }
+    html[data-design="2"] .mobile-menu .nav-submenu > li > a,
+    html[data-design="6"] .mobile-menu .nav-submenu > li > a,
+    html[data-design="8"] .mobile-menu .nav-submenu > li > a {
+        padding: .4rem .6rem !important; white-space: nowrap; border-bottom: none !important;
+    }
+}
+
 /* ---- unified data table (shared by every page with a data grid) ---- */
 /* One readable, theme-aware style so all tables match and headers stay
    legible in dark mode (replaces ad-hoc bg-gray-800/bg-gray-50/bordered
