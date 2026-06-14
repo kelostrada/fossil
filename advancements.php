@@ -32,7 +32,7 @@ ob_start();
         WHERE r.rn = 1
           AND r.prev_score IS NOT NULL
           AND r.score <> r.prev_score
-        ORDER BY r.new_timestamp DESC
+        ORDER BY r.timestamp DESC
         LIMIT 50;
     ";
 
@@ -40,8 +40,8 @@ ob_start();
 
     echo "<div class='bg-white rounded-lg shadow-md overflow-hidden'>";
     echo "<div class='overflow-x-auto'>";
-    echo "<table class='min-w-full divide-y divide-gray-200'>";
-    echo "<thead class='bg-gray-50'>";
+    echo "<table class='min-w-full data-table'>";
+    echo "<thead>";
     echo "<tr>
             <th class='px-2 md:px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>Player</th>
             <th class='px-2 md:px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>Vocation</th>
@@ -50,7 +50,7 @@ ob_start();
             <th class='px-2 md:px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>Time</th>
         </tr>";
     echo "</thead>";
-    echo "<tbody class='bg-white divide-y divide-gray-200'>";
+    echo "<tbody>";
 
     if ($result && $result->num_rows > 0) {
         while ($row = $result->fetch_assoc()) {

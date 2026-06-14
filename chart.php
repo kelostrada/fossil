@@ -166,8 +166,8 @@ ob_start();
     <?php if (!empty($latestScores)): ?>
         <div class="mt-6 bg-white p-6 rounded shadow-md max-w-3xl mx-auto">
             <h2 class="text-lg md:text-xl font-bold mb-4 text-gray-800">Latest Skills</h2>
-            <table class="min-w-full table-auto border-collapse border border-gray-300">
-                <thead class="bg-gray-100">
+            <table class="min-w-full data-table">
+                <thead>
                     <tr>
                         <th class="border border-gray-300 px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Skill</th>
                         <th class="border border-gray-300 px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Score</th>
@@ -193,8 +193,8 @@ ob_start();
                 <p class="text-gray-500 text-xs md:text-sm text-center">No deaths recorded.</p>
             <?php else: ?>
                 <div class="overflow-x-auto">
-                    <table class="min-w-full table-auto border-collapse border border-gray-300">
-                        <thead class="bg-gray-100">
+                    <table class="min-w-full data-table">
+                        <thead>
                             <tr>
                                 <th class="border border-gray-300 px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Time</th>
                                 <th class="border border-gray-300 px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Level</th>
@@ -235,8 +235,8 @@ ob_start();
                 <p class="text-gray-500 text-xs md:text-sm text-center">No frags recorded.</p>
             <?php else: ?>
                 <div class="overflow-x-auto">
-                    <table class="min-w-full table-auto border-collapse border border-gray-300">
-                        <thead class="bg-gray-100">
+                    <table class="min-w-full data-table">
+                        <thead>
                             <tr>
                                 <th class="border border-gray-300 px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Time</th>
                                 <th class="border border-gray-300 px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Victim</th>

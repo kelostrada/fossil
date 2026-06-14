@@ -222,6 +222,21 @@ html[data-design="8"].dark { --hl-online-bg: #3f8a64; --hl-online-text: #07211c;
 html[data-design] .section-header { background-color: var(--accent); color: var(--accent-contrast); }
 html[data-design] .section-header a { color: var(--accent-contrast); }
 
+/* ---- unified data table (shared by every page with a data grid) ---- */
+/* One readable, theme-aware style so all tables match and headers stay
+   legible in dark mode (replaces ad-hoc bg-gray-800/bg-gray-50/bordered
+   variants). Cell text colour/alignment is left to utility classes so
+   coloured values and links keep their colours. */
+html[data-design] table.data-table { width: 100%; border-collapse: collapse; }
+html[data-design] table.data-table thead { background-color: var(--bg-surface-alt); }
+html[data-design] table.data-table th {
+    padding: .5rem 1rem; border: 1px solid var(--border);
+    font-size: .7rem; font-weight: 600; text-transform: uppercase;
+    letter-spacing: .04em; color: var(--text-secondary);
+}
+html[data-design] table.data-table td { padding: .5rem 1rem; border: 1px solid var(--border); }
+html[data-design] table.data-table tbody tr:hover { background-color: var(--hover-bg); }
+
 /* ---- unified page scaffolding (shared by every page) ---- */
 html[data-design] .page-container { width: 100%; max-width: 72rem; margin-inline: auto; }
 html[data-design] .page-header { margin: 0 0 1.5rem; }
