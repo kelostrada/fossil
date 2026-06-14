@@ -97,13 +97,13 @@ function uitest_killers(): string
   $header
   <div class="bg-white rounded-lg shadow-md p-6">
     <div class="overflow-x-auto">
-      <table class="min-w-full table-auto border-collapse border border-gray-300">
-        <thead class="bg-gray-100"><tr>
-          <th class="border border-gray-300 px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">#</th>
-          <th class="border border-gray-300 px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Player</th>
-          <th class="border border-gray-300 px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Level</th>
-          <th class="border border-gray-300 px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Vocation</th>
-          <th class="border border-gray-300 px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Unique</th>
+      <table class="min-w-full data-table">
+        <thead><tr>
+          <th class="text-left">#</th>
+          <th class="text-left">Player</th>
+          <th class="text-left">Level</th>
+          <th class="text-left">Vocation</th>
+          <th class="text-left">Unique</th>
         </tr></thead>
         <tbody>$rows</tbody>
       </table>
