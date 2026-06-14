@@ -196,13 +196,13 @@ ob_start();
 ?>
 
 <div class="page-container">
-    <?php echo render_page_header('Environmental Killers', 'Which creatures cause the most player deaths in the game world.'); ?>
+    <?php echo render_page_header('Deadliest Creatures', 'The creatures responsible for the most player deaths.'); ?>
 
     <div class="bg-white rounded-lg shadow-md p-4 md:p-6">
         
         <div class="overflow-x-auto">
-            <table class="min-w-full bg-white rounded-lg overflow-hidden" id="environmentalKillersTable">
-                <thead class="bg-gray-800 text-white">
+            <table class="min-w-full data-table" id="environmentalKillersTable">
+                <thead>
                     <tr>
                         <th class="px-4 py-2 text-left sortable">Name</th>
                         <th class="px-4 py-2 text-center sortable" data-sort-default="desc">Today</th>
