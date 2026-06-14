@@ -1,8 +1,6 @@
 <?php
 require_once 'config.php';
 
-$conn = getDatabaseConnection();
-
 $selectedPerson = isset($_GET['person']) ? $_GET['person'] : '';
 
 // Date range (default: last two years)
@@ -19,10 +17,28 @@ if ($selectedPerson === '') {
     exit;
 }
 
-// online_results holds one row per recorded online minute, so an active
-// player over a long range can have 100k+ rows — far too many points to plot.
-// Pick a granularity from the range: raw for short ranges, hourly for medium,
-// daily for long. (Bucket expression is a constant, not user input.)
+// Short-lived response cache. The heavy chart query can read 100k+ rows for an
+// active player over a long range; without this, concurrent refreshes pile up
+// on the shared host's limited PHP workers and Cloudflare returns 5xx. A small
+// TTL keeps the chart near-real-time (data is scraped continuously) while
+// serving repeated/concurrent requests instantly from disk.
+$cacheTtl  = 120; // seconds
+$cacheDir  = sys_get_temp_dir() . '/fossil_cache';
+$cacheFile = $cacheDir . '/getdata_' . md5($selectedPerson . '|' . $startDateTime . '|' . $endDateTime) . '.json';
+
+if (is_file($cacheFile) && (time() - filemtime($cacheFile) < $cacheTtl)) {
+    header('Content-Type: application/json');
+    header('X-Cache: HIT');
+    readfile($cacheFile);
+    exit;
+}
+
+$conn = getDatabaseConnection();
+
+// online_results holds one row per recorded online minute, so an active player
+// over a long range can have 100k+ rows — far too many points to plot. Pick a
+// granularity from the range: raw for short ranges, hourly for medium, daily
+// for long. (Bucket expression is a constant, not user input.)
 $rangeDays = (strtotime($endDateTime) - strtotime($startDateTime)) / 86400;
 if ($rangeDays <= 10) {
     $bucket = null;                                              // raw points
@@ -47,11 +63,10 @@ if ($bucket === null) {
     }
     $stmt->close();
 } else {
-    // One representative point per bucket: the level at the most recent
-    // reading in that bucket. SUBSTRING_INDEX(...,1) takes the first value
-    // of the DESC-ordered concat, so group_concat truncation is irrelevant.
-    $sql = "SELECT MAX(online_time) AS t,
-                   CAST(SUBSTRING_INDEX(GROUP_CONCAT(level ORDER BY online_time DESC), ',', 1) AS UNSIGNED) AS lvl
+    // One representative point per bucket: the highest level reached in that
+    // bucket. MAX(level) is a cheap aggregate (no per-group sort), so the
+    // long-range query stays light even cold.
+    $sql = "SELECT MAX(online_time) AS t, MAX(level) AS lvl
             FROM online_results
             WHERE name = ? AND online_time BETWEEN ? AND ?
             GROUP BY $bucket
@@ -69,5 +84,12 @@ if ($bucket === null) {
 
 $conn->close();
 
+$json = json_encode($data);
+if (!is_dir($cacheDir)) {
+    @mkdir($cacheDir, 0775, true);
+}
+@file_put_contents($cacheFile, $json, LOCK_EX);
+
 header('Content-Type: application/json');
-echo json_encode($data);
+header('X-Cache: MISS');
+echo $json;
