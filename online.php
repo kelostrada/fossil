@@ -99,8 +99,12 @@ ob_start();
         echo "</thead>";
         echo "<tbody class='divide-y divide-gray-100'>";
         
-        // Determine the maximum number of rows to display
-        $maxRows = 50;
+        // Only render as many rows as the busiest day has, so days with fewer
+        // entries don't leave empty bordered rows at the bottom.
+        $maxRows = 0;
+        foreach ($aggregatedData as $players) {
+            $maxRows = max($maxRows, count($players));
+        }
         for ($j = 0; $j < $maxRows; $j++) {
             echo "<tr>";
             foreach ($aggregatedData as $players) {
