@@ -30,6 +30,14 @@ $extraHead = (isset($extraHead) ? $extraHead : '') . '
             }
         })();
     </script>
+    <script>
+        // Masthead (top-row) designs use hover-to-open dropdowns on desktop;
+        // sidebar designs (and any theme on mobile) open on click instead.
+        window.navHoverMode = function () {
+            return window.innerWidth >= 1024 &&
+                ['2', '6', '8'].indexOf(document.documentElement.getAttribute('data-design')) !== -1;
+        };
+    </script>
     <!-- Distinctive fonts used by the design themes -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -161,9 +169,11 @@ $extraHead = (isset($extraHead) ? $extraHead : '') . '
                             $groupActive = false;
                             foreach ($items as $it) { if ($itemActive($it)) { $groupActive = true; break; } }
                             ?>
-                            <li class="nav-group" x-data="{ open: <?php echo $groupActive ? 'true' : 'false'; ?> }"
-                                @mouseenter="open = true" @mouseleave="open = false">
-                                <button type="button" @click="open = !open"
+                            <li class="nav-group" x-data="{ open: false, active: <?php echo $groupActive ? 'true' : 'false'; ?> }"
+                                x-init="if (!navHoverMode()) open = active"
+                                @mouseenter="if (navHoverMode()) open = true"
+                                @mouseleave="if (navHoverMode()) open = false">
+                                <button type="button" @click="if (!navHoverMode()) open = !open"
                                         class="nav-group-toggle py-2 px-4 rounded-lg transition-colors duration-200 text-gray-700 hover:bg-gray-100 hover:text-gray-900">
                                     <span><?php echo $group; ?></span>
                                     <svg class="nav-caret" :class="open ? 'is-open' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
