@@ -371,20 +371,21 @@ html[data-design="2"] .lg\:w-64 { width: 100% !important; box-shadow: none !impo
         grid-template-columns: auto 1fr auto;
         align-items: center;
         gap: 1.25rem 2rem;
-        max-width: 1100px; margin: 0 auto; padding: 1.5rem 2rem;
+        max-width: 1280px; margin: 0 auto; padding: 1.5rem 2rem;
     }
     html[data-design="2"] .mobile-menu .p-6 > h1 { grid-column: 1; margin: 0; }
     html[data-design="2"] .mobile-menu .p-6 > h1 + div { display: none; }
     html[data-design="2"] .mobile-menu .theme-toggle { grid-column: 3; grid-row: 1; justify-self: end; width: auto; }
     html[data-design="2"] .mobile-menu .p-6 > .mb-6 { grid-column: 2; grid-row: 1; margin: 0; max-width: 280px; justify-self: end; }
     html[data-design="2"] .mobile-menu .p-6 > nav { grid-column: 1 / -1; grid-row: 2; border-top: 1px solid var(--border); padding-top: 1rem; }
-    html[data-design="2"] .mobile-menu nav ul { display: flex; flex-wrap: wrap; gap: 0 1.75rem; }
+    html[data-design="2"] .mobile-menu nav ul { display: flex; flex-wrap: wrap; gap: .3rem 1.25rem; }
+    html[data-design="2"] .mobile-menu nav a { white-space: nowrap; }
     html[data-design="2"] .mobile-menu .space-y-2 > * + * { margin-top: 0; }
-    html[data-design="2"] main > div { max-width: 1100px; margin: 0 auto; }
+    html[data-design="2"] main > div { max-width: 1280px; margin: 0 auto; }
 }
 html[data-design="2"] h1 { font-weight: 600; font-style: italic; letter-spacing: -.01em; }
 html[data-design="2"] nav a {
-    text-transform: uppercase; letter-spacing: .12em; font-size: .72rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: .08em; font-size: .72rem; font-weight: 600;
     padding: .35rem 0 !important; border-bottom: 2px solid transparent; border-radius: 0;
     background: transparent !important;
 }
