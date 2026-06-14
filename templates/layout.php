@@ -177,14 +177,19 @@ $extraHead = (isset($extraHead) ? $extraHead : '') . '
                 foreach ($menuGroups as $g => $gi) {
                     foreach ($gi as $it) { if ($itemActive($it)) { $activeGroupName = $g; break 2; } }
                 }
+                // Display order groups themes by nav style (sidebar-menu themes
+                // together, top-row/masthead themes together). The array KEY is the
+                // design id (data-design / vote id) and must not change.
                 $themeDesigns = [
+                    // sidebar (left menu) themes
                     1 => ['name' => 'Brutalist', 'sw' => '#ff4d00'],
-                    2 => ['name' => 'Editorial', 'sw' => '#9c2b1b'],
                     3 => ['name' => 'Terminal',  'sw' => '#39ff14'],
                     4 => ['name' => 'Cyberpunk', 'sw' => 'linear-gradient(135deg,#d400ff,#00d4ff)'],
                     5 => ['name' => 'Clay',      'sw' => '#ff7eb6'],
-                    6 => ['name' => 'Swiss',     'sw' => '#e60023'],
                     7 => ['name' => 'Organic',   'sw' => '#c2683a'],
+                    // top-row (masthead) navigation themes
+                    2 => ['name' => 'Editorial', 'sw' => '#9c2b1b'],
+                    6 => ['name' => 'Swiss',     'sw' => '#e60023'],
                     8 => ['name' => 'Art Deco',  'sw' => 'linear-gradient(135deg,#0e3b32,#d4af52)'],
                 ];
                 ?>
