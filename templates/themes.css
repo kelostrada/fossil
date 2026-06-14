@@ -970,4 +970,5 @@ html[data-design] .theme-vote {
     transition: color .15s, border-color .15s;
 }
 html[data-design] .theme-vote:hover { border-color: var(--accent); color: var(--accent); }
-html[data-design] .theme-vote.voted { color: var(--positive); border-color: var(--positive); cursor: default; }
+html[data-design] .theme-vote.voted { color: var(--positive); border-color: var(--positive); }
+html[data-design] .theme-vote.voted:hover { color: var(--negative); border-color: var(--negative); }
