@@ -234,6 +234,16 @@ html[data-design] .nav-caret.is-open { transform: rotate(180deg); }
 html[data-design] .nav-submenu { display: block; }
 html[data-design] .nav-submenu > li > a { padding-left: 2rem; font-size: .95em; }
 
+/* masthead themes set `nav a { padding: .. 0 !important }`, which kills the
+   submenu indent in the mobile accordion — restore it on small screens */
+@media (max-width: 1024px) {
+    html[data-design="2"] .nav-submenu > li > a,
+    html[data-design="6"] .nav-submenu > li > a,
+    html[data-design="8"] .nav-submenu > li > a {
+        padding: .4rem 1rem .4rem 2rem !important;
+    }
+}
+
 @media (min-width: 1024px) {
     /* masthead designs: top-level groups in a row, submenus as dropdowns */
     html[data-design="2"] .nav-group,
