@@ -25,16 +25,6 @@ ob_start();
 <div class="page-container">
     <?php echo render_page_header('Calculators', 'Tuned for Fossil: no promotions; Sudden Death and Ultimate Explosion at 70% damage. Results update as you type.'); ?>
 
-    <!-- Calculator nav (real links: each calculator has its own URL) -->
-    <div class="flex flex-wrap border-b border-gray-200 mb-6">
-        <?php foreach ($tabs as $key => $label): ?>
-            <a href="?calc=<?php echo $key; ?>"
-               class="px-4 py-2 border-b-2 font-medium text-sm md:text-base <?php echo $calc === $key ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'; ?>">
-                <?php echo $label; ?>
-            </a>
-        <?php endforeach; ?>
-    </div>
-
     <?php if ($calc === 'training'): ?>
     <!-- ===== Skill Training ===== -->
     <div class="bg-white rounded-lg shadow-md p-6">

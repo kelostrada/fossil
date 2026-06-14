@@ -249,10 +249,16 @@ html[data-design] .nav-submenu > li > a { padding-left: 2rem; font-size: .95em; 
     html[data-design="6"] .mobile-menu .nav-submenu,
     html[data-design="8"] .mobile-menu .nav-submenu {
         display: block; position: absolute; top: 100%; left: 0; z-index: 60;
-        min-width: 12rem; padding: .4rem; margin-top: .35rem;
+        min-width: 12rem; padding: .4rem; margin-top: .4rem;
         background-color: var(--bg-surface);
         border: 1px solid var(--border);
         box-shadow: var(--shadow-lg);
+    }
+    /* transparent bridge over the gap so moving cursor down keeps it open */
+    html[data-design="2"] .mobile-menu .nav-submenu::before,
+    html[data-design="6"] .mobile-menu .nav-submenu::before,
+    html[data-design="8"] .mobile-menu .nav-submenu::before {
+        content: ""; position: absolute; left: 0; right: 0; top: -.4rem; height: .4rem;
     }
     html[data-design="2"] .mobile-menu .nav-submenu > li > a,
     html[data-design="6"] .mobile-menu .nav-submenu > li > a,
