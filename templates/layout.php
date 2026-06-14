@@ -47,7 +47,8 @@ $extraHead = (isset($extraHead) ? $extraHead : '') . '
     <!-- Design theme system (8 designs x light/dark) -->
     <?php $themesCss = __DIR__ . '/themes.css'; $themesVer = @filemtime($themesCss) ?: time(); ?>
     <link href="templates/themes.css?v=<?php echo $themesVer; ?>" rel="stylesheet">
-    <!-- Alpine.js for mobile menu toggle -->
+    <!-- Alpine.js (collapse plugin first, then core) for menu toggles + slide animations -->
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <?php if (isset($extraHead)) echo $extraHead; ?>
     <style>
@@ -190,7 +191,7 @@ $extraHead = (isset($extraHead) ? $extraHead : '') . '
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                                     </svg>
                                 </button>
-                                <ul class="nav-submenu space-y-1" x-show="openGroup === '<?php echo $group; ?>'" x-cloak>
+                                <ul class="nav-submenu space-y-1" x-show="openGroup === '<?php echo $group; ?>'" x-collapse x-cloak>
                                     <?php foreach ($items as $it):
                                         $isActive = $itemActive($it);
                                         ?>
