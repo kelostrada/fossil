@@ -897,6 +897,9 @@ html[data-design="8"] h2 { text-transform: uppercase; letter-spacing: .08em; fon
         max-width: 84vw;
         z-index: 50;
     }
+    /* reserve room for the drawer's close button so big-font wordmarks
+       (brutalist, swiss, ...) don't run under it */
+    html[data-design] .mobile-menu .p-6 > h1 { padding-right: 2.75rem; }
 }
 
 /* ===================================================================== */
