@@ -12,18 +12,27 @@ try {
     exit;
 }
 
-// POST = cast a vote (one per theme per voter, enforced by the unique key).
+// POST = cast a vote, or cancel it (action=unvote). One vote per theme per
+// voter is enforced by the unique key; cancelling deletes that row.
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $design = isset($_POST['design']) ? (int)$_POST['design'] : 0;
+    $action = isset($_POST['action']) ? $_POST['action'] : 'vote';
     if ($design >= 1 && $design <= 8 && $voter !== '') {
-        $ip = isset($_SERVER['HTTP_CF_CONNECTING_IP']) ? $_SERVER['HTTP_CF_CONNECTING_IP']
-            : (isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '');
-        $ip = substr($ip, 0, 45);
-        $ua = substr(isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '', 0, 255);
-        $stmt = $conn->prepare("INSERT IGNORE INTO theme_votes (design, voter_id, ip, user_agent) VALUES (?, ?, ?, ?)");
-        $stmt->bind_param("isss", $design, $voter, $ip, $ua);
-        $stmt->execute();
-        $stmt->close();
+        if ($action === 'unvote') {
+            $stmt = $conn->prepare("DELETE FROM theme_votes WHERE design = ? AND voter_id = ?");
+            $stmt->bind_param("is", $design, $voter);
+            $stmt->execute();
+            $stmt->close();
+        } else {
+            $ip = isset($_SERVER['HTTP_CF_CONNECTING_IP']) ? $_SERVER['HTTP_CF_CONNECTING_IP']
+                : (isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '');
+            $ip = substr($ip, 0, 45);
+            $ua = substr(isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '', 0, 255);
+            $stmt = $conn->prepare("INSERT IGNORE INTO theme_votes (design, voter_id, ip, user_agent) VALUES (?, ?, ?, ?)");
+            $stmt->bind_param("isss", $design, $voter, $ip, $ua);
+            $stmt->execute();
+            $stmt->close();
+        }
     }
 }
 

@@ -303,23 +303,38 @@ $extraHead = (isset($extraHead) ? $extraHead : '') . '
         });
         highlight();
 
-        // Theme voting (counts + one vote per theme per browser)
+        // Theme voting (counts + one vote per theme per browser, cancellable)
         function renderVotes(counts, voted) {
+            var votedSet = {};
+            (voted || []).forEach(function(d) { votedSet[d] = true; });
             document.querySelectorAll('.theme-votes').forEach(function(el) {
                 var d = el.getAttribute('data-votes');
                 var n = (counts && counts[d] != null) ? counts[d] : 0;
                 el.textContent = '(' + n + ')';
             });
-            (voted || []).forEach(function(d) {
-                var b = document.querySelector('.theme-vote[data-vote="' + d + '"]');
-                if (b) { b.classList.add('voted'); b.disabled = true; b.textContent = '✓'; b.title = 'You already voted for this theme'; }
+            document.querySelectorAll('.theme-vote').forEach(function(b) {
+                var d = b.getAttribute('data-vote');
+                if (votedSet[d]) {
+                    b.classList.add('voted');
+                    if (b.matches(':hover')) { b.textContent = '✕'; } else { b.textContent = '✓'; }
+                    b.title = 'Cancel your vote';
+                } else {
+                    b.classList.remove('voted');
+                    b.textContent = '+1';
+                    b.title = 'Vote for this theme';
+                }
             });
         }
         document.querySelectorAll('.theme-vote').forEach(function(b) {
+            // show a cancel hint (✕) when hovering a vote you've already cast
+            b.addEventListener('mouseenter', function() { if (b.classList.contains('voted')) b.textContent = '✕'; });
+            b.addEventListener('mouseleave', function() { if (b.classList.contains('voted')) b.textContent = '✓'; });
             b.addEventListener('click', function(e) {
                 e.stopPropagation();           // don't switch theme or close the menu
-                if (b.disabled) return;
-                var fd = new FormData(); fd.append('design', b.getAttribute('data-vote'));
+                var voting = !b.classList.contains('voted');
+                var fd = new FormData();
+                fd.append('design', b.getAttribute('data-vote'));
+                fd.append('action', voting ? 'vote' : 'unvote');
                 fetch('vote_theme.php', { method: 'POST', body: fd })
                     .then(function(r) { return r.json(); })
                     .then(function(res) { renderVotes(res.counts, res.voted); })
