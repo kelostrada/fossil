@@ -162,25 +162,25 @@ $extraHead = (isset($extraHead) ? $extraHead : '') . '
                     if ($item['file'] !== $currentFile) return false;
                     return isset($item['calc']) ? $item['calc'] === $currentCalc : true;
                 };
+                $activeGroupName = '';
+                foreach ($menuGroups as $g => $gi) {
+                    foreach ($gi as $it) { if ($itemActive($it)) { $activeGroupName = $g; break 2; } }
+                }
                 ?>
-                <nav>
+                <nav x-data="{ openGroup: navHoverMode() ? '' : '<?php echo $activeGroupName; ?>' }">
                     <ul class="space-y-1">
-                        <?php foreach ($menuGroups as $group => $items):
-                            $groupActive = false;
-                            foreach ($items as $it) { if ($itemActive($it)) { $groupActive = true; break; } }
-                            ?>
-                            <li class="nav-group" x-data="{ open: false, active: <?php echo $groupActive ? 'true' : 'false'; ?> }"
-                                x-init="if (!navHoverMode()) open = active"
-                                @mouseenter="if (navHoverMode()) open = true"
-                                @mouseleave="if (navHoverMode()) open = false">
-                                <button type="button" @click="if (!navHoverMode()) open = !open"
+                        <?php foreach ($menuGroups as $group => $items): ?>
+                            <li class="nav-group"
+                                @mouseenter="if (navHoverMode()) openGroup = '<?php echo $group; ?>'"
+                                @mouseleave="if (navHoverMode()) openGroup = ''">
+                                <button type="button" @click="if (!navHoverMode()) openGroup = (openGroup === '<?php echo $group; ?>' ? '' : '<?php echo $group; ?>')"
                                         class="nav-group-toggle py-2 px-4 rounded-lg transition-colors duration-200 text-gray-700 hover:bg-gray-100 hover:text-gray-900">
                                     <span><?php echo $group; ?></span>
-                                    <svg class="nav-caret" :class="open ? 'is-open' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <svg class="nav-caret" :class="openGroup === '<?php echo $group; ?>' ? 'is-open' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                                     </svg>
                                 </button>
-                                <ul class="nav-submenu space-y-1" x-show="open" x-cloak>
+                                <ul class="nav-submenu space-y-1" x-show="openGroup === '<?php echo $group; ?>'" x-cloak>
                                     <?php foreach ($items as $it):
                                         $isActive = $itemActive($it);
                                         ?>
@@ -204,9 +204,9 @@ $extraHead = (isset($extraHead) ? $extraHead : '') . '
         </div>
 
         <!-- Mobile menu button (outside sidebar) -->
-        <button @click="mobileMenuOpen = !mobileMenuOpen" 
+        <button @click="mobileMenuOpen = !mobileMenuOpen"
                 x-show="!mobileMenuOpen"
-                class="lg:hidden fixed top-4 left-4 z-50 bg-white p-2 rounded-md text-gray-500 hover:text-gray-700 focus:outline-none shadow-lg">
+                class="lg:hidden fixed top-4 right-4 z-50 bg-white p-2 rounded-md text-gray-500 hover:text-gray-700 focus:outline-none shadow-lg">
             <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
