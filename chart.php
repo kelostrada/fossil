@@ -380,7 +380,8 @@ $extraScripts = '
                         pointHoverBackgroundColor: c.accent,
                         pointHoverBorderColor: c.surface,
                         borderWidth: 2,
-                        tension: 0.25,
+                        tension: 0,
+                        stepped: false,
                         fill: true,
                         spanGaps: true
                     }]
