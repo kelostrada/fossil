@@ -381,7 +381,7 @@ $extraScripts = '
                         pointHoverBorderColor: c.surface,
                         borderWidth: 2,
                         tension: 0,
-                        stepped: 'after',
+                        stepped: "after",
                         fill: true,
                         spanGaps: true
                     }]
