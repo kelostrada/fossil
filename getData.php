@@ -37,9 +37,28 @@ $conn = getDatabaseConnection();
 
 // online_results holds one row per recorded online minute, so an active player
 // over a long range can have 100k+ rows — far too many points to plot. Pick a
-// granularity from the range: raw for short ranges, hourly for medium, daily
-// for long. (Bucket expression is a constant, not user input.)
-$rangeDays = (strtotime($endDateTime) - strtotime($startDateTime)) / 86400;
+// granularity from the character's ACTUAL data span within the range (not the
+// requested range): a brand-new character with two days of history should show
+// every point even if a 2-year window is selected. (Bucket expr is constant.)
+$spanDays = 0;
+$stmt = $conn->prepare("SELECT MIN(online_time), MAX(online_time) FROM online_results WHERE name = ? AND online_time BETWEEN ? AND ?");
+$stmt->bind_param("sss", $selectedPerson, $startDateTime, $endDateTime);
+$stmt->execute();
+$stmt->bind_result($minTime, $maxTime);
+$stmt->fetch();
+$stmt->close();
+if ($minTime === null) {
+    // no data in range
+    $conn->close();
+    $json = json_encode($data);
+    if (!is_dir($cacheDir)) { @mkdir($cacheDir, 0775, true); }
+    @file_put_contents($cacheFile, $json, LOCK_EX);
+    header('Content-Type: application/json');
+    header('X-Cache: MISS');
+    echo $json;
+    exit;
+}
+$rangeDays = (strtotime($maxTime) - strtotime($minTime)) / 86400;
 if ($rangeDays <= 10) {
     $bucket = null;                                              // raw points
 } elseif ($rangeDays <= 92) {
