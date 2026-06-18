@@ -454,7 +454,7 @@ html[data-design="2"] .lg\:w-64 { width: 100% !important; box-shadow: none !impo
     html[data-design="2"] .mobile-menu .p-6 > nav { grid-column: 1 / -1; grid-row: 2; border-top: 1px solid var(--border); padding-top: 1rem; }
     html[data-design="2"] .mobile-menu nav ul { display: flex; flex-wrap: wrap; gap: .3rem 1.25rem; }
     html[data-design="2"] .mobile-menu nav a { white-space: nowrap; }
-    html[data-design="2"] .mobile-menu nav > ul > * + * { margin-top: 0; }
+    html[data-design="2"] .mobile-menu nav > ul > * + * { margin-top: 0 !important; }
     /* match the content width to the masthead so the nav lines up with it */
     html[data-design="2"] main > div { max-width: 1280px; margin: 0 auto; }
     html[data-design="2"] .page-container { max-width: none; }
@@ -742,7 +742,7 @@ html[data-design="6"] .lg\:w-64 { width: 100% !important; box-shadow: none !impo
     html[data-design="6"] .mobile-menu .theme-toggle { grid-row: 1; grid-column: 3; width: auto; margin: 0; }
     html[data-design="6"] .mobile-menu .p-6 > nav { grid-row: 2; grid-column: 1 / -1; margin-top: .75rem; border-top: 1px solid var(--border); padding-top: .5rem; }
     html[data-design="6"] .mobile-menu nav ul { display: flex; flex-wrap: wrap; gap: 0 2rem; counter-reset: nav; }
-    html[data-design="6"] .mobile-menu nav > ul > * + * { margin-top: 0; }
+    html[data-design="6"] .mobile-menu nav > ul > * + * { margin-top: 0 !important; }
 }
 html[data-design="6"] h1 { font-size: 2rem; text-transform: uppercase; letter-spacing: -.01em; line-height: .9; }
 html[data-design="6"] nav { counter-reset: nav; }
@@ -886,7 +886,7 @@ html[data-design="8"] .lg\:w-64 { width: 100% !important; box-shadow: none !impo
     html[data-design="8"] .mobile-menu .p-6 > nav { grid-column: 1 / -1; grid-row: 3; }
     html[data-design="8"] .mobile-menu nav ul { display: flex; flex-wrap: wrap; justify-content: center; gap: .3rem 1rem; }
     html[data-design="8"] .mobile-menu nav a { white-space: nowrap; }
-    html[data-design="8"] .mobile-menu nav > ul > * + * { margin-top: 0; }
+    html[data-design="8"] .mobile-menu nav > ul > * + * { margin-top: 0 !important; }
 }
 html[data-design="8"] body {
     background-image: repeating-linear-gradient(45deg, transparent 0 22px, rgba(184,144,47,.05) 22px 23px),
