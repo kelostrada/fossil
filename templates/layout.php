@@ -103,7 +103,7 @@ $extraHead = (isset($extraHead) ? $extraHead : '') . '
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
             </button>
-            <span class="font-bold text-gray-800">Fossil Stats</span>
+            <a href="index.php" class="font-bold text-gray-800">Fossil Stats</a>
         </div>
         <!-- Sidebar -->
         <div x-show="mobileMenuOpen || window.innerWidth >= 1024"
@@ -125,7 +125,7 @@ $extraHead = (isset($extraHead) ? $extraHead : '') . '
             </div>
 
             <div class="p-6">
-                <h1 class="text-2xl font-bold text-gray-800 mb-1">Fossil Stats</h1>
+                <h1 class="text-2xl font-bold text-gray-800 mb-1"><a href="index.php">Fossil Stats</a></h1>
                 <div class="h-1 w-10 rounded bg-blue-600 mb-5"></div>
 
                 <!-- Dark mode toggle -->
@@ -148,7 +148,6 @@ $extraHead = (isset($extraHead) ? $extraHead : '') . '
                 <?php
                 $menuGroups = [
                     'Stats' => [
-                        ['url' => 'index.php',                 'label' => 'Home',                 'file' => 'index.php'],
                         ['url' => 'online.php',                'label' => 'Online Stats',         'file' => 'online.php'],
                         ['url' => 'advancements.php',          'label' => 'Recent Advancements',  'file' => 'advancements.php'],
                         ['url' => 'recent_deaths.php',         'label' => 'Recent Deaths',        'file' => 'recent_deaths.php'],
