@@ -48,6 +48,11 @@ function getDatabaseConnection() {
     static $conn = null;
     
     if ($conn === null) {
+        // This codebase checks mysqli return values by hand; PHP 8.1+ defaults
+        // to throwing, which turns the scores dedup trigger's SIGNAL into a
+        // fatal that aborts scrape loops mid-run.
+        mysqli_report(MYSQLI_REPORT_OFF);
+
         $host = getenv('DB_HOST');
         $username = getenv('DB_USERNAME');
         $password = getenv('DB_PASSWORD');
