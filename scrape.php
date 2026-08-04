@@ -12,16 +12,30 @@ include('simple_html_dom.php');
 
 header('Content-Type: application/json');
 
-$scrapeType = $_GET['type'];
+// Callable via web (?type=...) or CLI (php scrape.php <type>)
+$scrapeType = $_GET['type'] ?? $argv[1] ?? null;
+
+// A hanging fossil-legacy.com must not tie up workers for the default 60s
+// socket timeout — that piles up lsphp processes until the hosting's LVE
+// process limit takes the whole account down.
+function fetchRemote($url)
+{
+    $context = stream_context_create(['http' => ['timeout' => 10]]);
+    return file_get_contents($url, false, $context);
+}
 
 if ($scrapeType == 'highscores') {
     $types = 9;
     $pages = 4;
 
-    $page = file_get_contents('page.txt');
-    $type = file_get_contents('type.txt');
+    $page = file_get_contents(__DIR__ . '/page.txt');
+    $type = file_get_contents(__DIR__ . '/type.txt');
 
-    $contents = file_get_contents("http://fossil-legacy.com/highscores.php?&type=$type&page=$page");
+    $contents = fetchRemote("http://fossil-legacy.com/highscores.php?&type=$type&page=$page");
+    if ($contents === false) {
+        echo json_encode(['success' => false, 'error' => 'Failed to fetch highscores page']);
+        return;
+    }
     $scores = parseHighscoresTable($contents);
 
     storeScores($scores, $type);
@@ -33,14 +47,18 @@ if ($scrapeType == 'highscores') {
         $type = $type + 1 > $types ? 1 : $type + 1;
     }
 
-    file_put_contents('page.txt', $page);
-    file_put_contents('type.txt', $type);
+    file_put_contents(__DIR__ . '/page.txt', $page);
+    file_put_contents(__DIR__ . '/type.txt', $type);
 
     // echo json_encode($scores);
 }
 
 if ($scrapeType == 'online') {
-    $contents = file_get_contents("http://fossil-legacy.com/online.php");
+    $contents = fetchRemote("http://fossil-legacy.com/online.php");
+    if ($contents === false) {
+        echo json_encode(['success' => false, 'error' => 'Failed to fetch online page']);
+        return;
+    }
     $online = parseOnlineListTable($contents);
     echo json_encode($online);
 
@@ -83,7 +101,7 @@ if ($scrapeType == 'online') {
 
 if ($scrapeType == 'profiles') {
     // Get the last fetched ID
-    $lastFetchedId = (int)file_get_contents('last_fetched_id.txt');
+    $lastFetchedId = (int)file_get_contents(__DIR__ . '/last_fetched_id.txt');
 
     // Find the next character to process based on ID
     $sql = "SELECT cv.id, cv.name 
@@ -103,11 +121,11 @@ if ($scrapeType == 'profiles') {
         $characterName = $row['name'];
 
         // Update the last fetched ID
-        file_put_contents('last_fetched_id.txt', $characterId);
+        file_put_contents(__DIR__ . '/last_fetched_id.txt', $characterId);
 
         // Fetch character profile
         $url = "http://fossil-legacy.com/characterprofile.php?name=" . urlencode($characterName);
-        $contents = file_get_contents($url);
+        $contents = fetchRemote($url);
 
         if ($contents) {
             // Check if player doesn't exist
