@@ -6,6 +6,11 @@ $pageTitle = 'Character Stats - Fossil Stats';
 // Get default name from GET parameter (if any)
 $defaultName = isset($_GET['name']) ? $_GET['name'] : "";
 
+// Hidden characters act like they don't exist: render as if no name was given.
+if ($defaultName !== "" && isHiddenCharacter($defaultName)) {
+    $defaultName = "";
+}
+
 // Extra head content for Chart.js
 $extraHead = '
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -54,6 +59,7 @@ function getDeathHistory($conn, $name) {
         SELECT death_time, level, killed_by, is_player
         FROM character_deaths
         WHERE character_name = ?
+        AND " . hiddenCharactersCondition($conn, 'killed_by') . "
         ORDER BY death_time DESC
     ");
     $stmt->bind_param("s", $name);
@@ -67,6 +73,7 @@ function getFragHistory($conn, $name) {
         SELECT death_time as time, character_name as victim, level
         FROM character_deaths
         WHERE killed_by = ? AND is_player = 1
+        AND " . hiddenCharactersCondition($conn, 'character_name') . "
         ORDER BY death_time DESC
     ");
     $stmt->bind_param("s", $name);

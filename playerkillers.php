@@ -15,6 +15,8 @@ $killersQuery = "
         MAX(death_time) AS last_kill
     FROM character_deaths
     WHERE is_player = 1
+    AND " . hiddenCharactersCondition($conn, 'killed_by') . "
+    AND " . hiddenCharactersCondition($conn, 'character_name') . "
     GROUP BY killed_by
     ORDER BY unique_kills DESC, total_kills DESC
     LIMIT 100";

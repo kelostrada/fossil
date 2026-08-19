@@ -34,9 +34,10 @@ try {
                     AND s2.type = 7
                 )
             ) s ON cv.name = s.name
-            WHERE cv.name LIKE ? 
+            WHERE cv.name LIKE ?
             AND cv.exists = 1
-            ORDER BY s.score DESC 
+            AND " . hiddenCharactersCondition($conn, 'cv.name') . "
+            ORDER BY s.score DESC
             LIMIT 10";
 
     $stmt = $conn->prepare($sql);

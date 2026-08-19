@@ -32,6 +32,7 @@ function getTopPlayersByVocation($conn, $type, $limit = 500) {
                 GROUP BY name
             ) latest ON latest.name = s.name AND latest.mt = s.timestamp
             WHERE s.type = ?
+            AND " . hiddenCharactersCondition($conn, 's.name') . "
             ORDER BY s.score DESC";
 
     $stmt = $conn->prepare($sql);

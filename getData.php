@@ -11,7 +11,7 @@ $endDateTime   = $endDate   . ' 23:59:59';
 
 $data = ['timestamps' => [], 'onlineTime' => []];
 
-if ($selectedPerson === '') {
+if ($selectedPerson === '' || isHiddenCharacter($selectedPerson)) {
     header('Content-Type: application/json');
     echo json_encode($data);
     exit;

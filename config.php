@@ -84,6 +84,32 @@ $GLOBALS['skillNames'] = [
     6 => 'Fishing'
 ];
 
+// Characters that are scraped and stored like everyone else but must never be
+// shown anywhere in the UI or returned by the data endpoints.
+$GLOBALS['hiddenCharacters'] = ['REDACTED'];
+
+function isHiddenCharacter($name) {
+    foreach ($GLOBALS['hiddenCharacters'] as $hidden) {
+        if (strcasecmp($hidden, $name) === 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// SQL condition excluding hidden characters, e.g. "name NOT IN ('REDACTED')".
+// Values are escaped, so the fragment is safe to inline in a query.
+function hiddenCharactersCondition($conn, $column) {
+    $names = $GLOBALS['hiddenCharacters'];
+    if (empty($names)) {
+        return "1=1";
+    }
+    $escaped = array_map(function ($n) use ($conn) {
+        return "'" . $conn->real_escape_string($n) . "'";
+    }, $names);
+    return "$column NOT IN (" . implode(',', $escaped) . ")";
+}
+
 // Get Discord webhook URL
 function getDiscordWebhookUrl() {
     return getenv('DISCORD_WEBHOOK_URL');
