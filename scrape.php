@@ -5,15 +5,41 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-// Get database connection
-$conn = getDatabaseConnection();
-
 include('simple_html_dom.php');
 
 header('Content-Type: application/json');
 
 // Callable via web (?type=...) or CLI (php scrape.php <type>)
 $scrapeType = $_GET['type'] ?? $argv[1] ?? null;
+
+// Failure log + per-type success heartbeats. Cron discards stdout, so without
+// these a scrape gap is indistinguishable from cron not running at all:
+// stale heartbeat + failures logged = source/DB problem; stale heartbeat and
+// nothing logged = the host never ran the job.
+function scrapeLog($message)
+{
+    $file = __DIR__ . '/scrape_failures.log';
+    // Bounded size: keep one rotated generation, ~1MB total worst case.
+    if (is_file($file) && filesize($file) > 512 * 1024) {
+        @rename($file, $file . '.old');
+    }
+    $line = '[' . date('Y-m-d H:i:s') . '] ' . $message . "\n";
+    @file_put_contents($file, $line, FILE_APPEND | LOCK_EX);
+}
+
+function scrapeHeartbeat($type)
+{
+    @file_put_contents(__DIR__ . '/heartbeat_' . $type . '.txt', date('Y-m-d H:i:s'));
+}
+
+// Get database connection
+try {
+    $conn = getDatabaseConnection();
+} catch (Throwable $e) {
+    scrapeLog(($scrapeType ?? '?') . ': DB connection failed: ' . $e->getMessage());
+    echo json_encode(['success' => false, 'error' => 'DB connection failed']);
+    return;
+}
 
 // A hanging fossil-legacy.com must not tie up workers for the default 60s
 // socket timeout — that piles up lsphp processes until the hosting's LVE
@@ -33,10 +59,16 @@ if ($scrapeType == 'highscores') {
 
     $contents = fetchRemote("http://fossil-legacy.com/highscores.php?&type=$type&page=$page");
     if ($contents === false) {
+        scrapeLog("highscores: fetch failed (type=$type page=$page)");
         echo json_encode(['success' => false, 'error' => 'Failed to fetch highscores page']);
         return;
     }
     $scores = parseHighscoresTable($contents);
+    if ($scores === null) {
+        scrapeLog("highscores: no highscoresTable in response (type=$type page=$page, " . strlen($contents) . " bytes)");
+        echo json_encode(['success' => false, 'error' => 'Failed to parse highscores page']);
+        return;
+    }
 
     storeScores($scores, $type);
 
@@ -50,26 +82,35 @@ if ($scrapeType == 'highscores') {
     file_put_contents(__DIR__ . '/page.txt', $page);
     file_put_contents(__DIR__ . '/type.txt', $type);
 
+    scrapeHeartbeat('highscores');
+
     // echo json_encode($scores);
 }
 
 if ($scrapeType == 'online') {
     $contents = fetchRemote("http://fossil-legacy.com/online.php");
     if ($contents === false) {
+        scrapeLog("online: fetch failed");
         echo json_encode(['success' => false, 'error' => 'Failed to fetch online page']);
         return;
     }
     $online = parseOnlineListTable($contents);
+    if ($online === null) {
+        scrapeLog("online: no onlinelistTable in response (" . strlen($contents) . " bytes)");
+        echo json_encode(['success' => false, 'error' => 'Failed to parse online page']);
+        return;
+    }
     echo json_encode($online);
 
     // Prepared statement for inserting into online_results
     $onlineInsertStmt = $conn->prepare("INSERT INTO online_results (name, level) VALUES (?, ?)");
     if ($onlineInsertStmt === false) {
-        error_log("Failed to prepare online_results insert: " . $conn->error);
+        scrapeLog("online: prepare failed: " . $conn->error);
         return;
     }
 
     // Insert records into the table
+    $insertErrors = 0;
     foreach ($online as $onlinePerson) {
         $name = (string)$onlinePerson->Name;
         $level = (int)$onlinePerson->Level;
@@ -77,7 +118,9 @@ if ($scrapeType == 'online') {
 
         // Insert into online_results
         $onlineInsertStmt->bind_param("si", $name, $level);
-        $onlineInsertStmt->execute();
+        if (!$onlineInsertStmt->execute() && $insertErrors++ === 0) {
+            scrapeLog("online: insert failed for $name: " . $onlineInsertStmt->error);
+        }
 
         // Store or update vocation
         $vocationStmt = $conn->prepare("INSERT INTO character_vocations (name, vocation) VALUES (?, ?) ON DUPLICATE KEY UPDATE vocation = VALUES(vocation)");
@@ -97,9 +140,19 @@ if ($scrapeType == 'online') {
     }
 
     $onlineInsertStmt->close();
+
+    if ($insertErrors > 0) {
+        scrapeLog("online: $insertErrors of " . count($online) . " inserts failed");
+    } else {
+        scrapeHeartbeat('online');
+    }
 }
 
 if ($scrapeType == 'profiles') {
+    // Heartbeat marks the job having run at all; per-character failures are
+    // logged individually below ("no such player" outcomes are normal).
+    scrapeHeartbeat('profiles');
+
     // Get the last fetched ID
     $lastFetchedId = (int)file_get_contents(__DIR__ . '/last_fetched_id.txt');
 
@@ -313,6 +366,7 @@ if ($scrapeType == 'profiles') {
             }
             $dom->clear();
         } else {
+            scrapeLog("profiles: fetch failed for $characterName");
             echo json_encode([
                 'success' => false,
                 'error' => 'Could not fetch profile page for ' . $characterName
@@ -435,7 +489,7 @@ function storeScores($scores, $type)
     $vocationStmt = $conn->prepare("INSERT INTO character_vocations (name, vocation) VALUES (?, ?) ON DUPLICATE KEY UPDATE vocation = VALUES(vocation)");
 
     if (!$stmt || !$vocationStmt) {
-        error_log("Prepare failed: " . $conn->error);
+        scrapeLog("highscores: storeScores prepare failed: " . $conn->error);
         return;
     }
 

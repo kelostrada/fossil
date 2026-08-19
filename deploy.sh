@@ -22,7 +22,7 @@ RSYNC_OPTS=(
   --human-readable
   --itemize-changes
   -e "ssh -p ${SSH_PORT}"
-  --exclude='.git/'
+  --exclude='.git'
   --exclude='.gitignore'
   --exclude='.env'
   --exclude='.DS_Store'
@@ -31,6 +31,7 @@ RSYNC_OPTS=(
   --exclude='type.txt'
   --exclude='last_fetched_id.txt'
   --exclude='notified_logins.json'
+  --exclude='heartbeat_*.txt'
   --exclude='deploy.sh'
   --exclude='README.md'
   --exclude='tools/'

@@ -5,7 +5,9 @@ type.txt
 notified_logins.json
 vendor/
 .DS_Store
-last_fetched_id.txt 
+last_fetched_id.txt
+heartbeat_*.txt
+scrape_failures.log*
 
 # UI test artifacts
 tools/uitest/out/
