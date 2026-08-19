@@ -17,6 +17,8 @@ $deathsQuery = "
         character_vocations.vocation
     FROM character_deaths
     LEFT JOIN character_vocations ON character_deaths.character_name = character_vocations.name
+    WHERE " . hiddenCharactersCondition($conn, 'character_deaths.character_name') . "
+    AND " . hiddenCharactersCondition($conn, 'character_deaths.killed_by') . "
     ORDER BY death_time DESC
     LIMIT 100
 ";

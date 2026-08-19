@@ -10,6 +10,16 @@ if (!$selectedPerson) {
     exit;
 }
 
+// Hidden characters act like they don't exist: every skill reads n/a.
+if (isHiddenCharacter($selectedPerson)) {
+    $output = [];
+    foreach ($GLOBALS['skillNames'] as $skill) {
+        $output[] = ['skill' => $skill, 'score' => 'n/a'];
+    }
+    echo json_encode($output);
+    exit;
+}
+
 // Get database connection
 $conn = getDatabaseConnection();
 

@@ -45,6 +45,11 @@ ob_start();
         $dateFilter = "WHERE DATE(online_time) <= '$endDate'";
     }
 
+    $hiddenCondition = hiddenCharactersCondition($conn, 'name');
+    $dateFilter = $dateFilter === ""
+        ? "WHERE $hiddenCondition"
+        : "$dateFilter AND $hiddenCondition";
+
     // Prepare SQL statement to fetch data
     $sql = "SELECT 
                 name, 
