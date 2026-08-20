@@ -1,0 +1,89 @@
+name: deploy
+
+on:
+  push:
+    branches: [main]
+
+env:
+  IMAGE_NAME: ghcr.io/kelostrada/fossil
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history + tags for `git describe`
+
+      - name: Compute VERSION
+        run: |
+          VERSION=$(git describe --tags --always --dirty)
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "Resolved VERSION=$VERSION"
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to ghcr.io
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/arm64/v8
+          push: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:latest
+            ${{ env.IMAGE_NAME }}:${{ env.VERSION }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Install cloudflared
+        run: |
+          curl -sSL -o cloudflared.deb \
+            https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+          sudo dpkg -i cloudflared.deb
+
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          cat >> ~/.ssh/config <<EOF
+          Host airssh.melinakrzemowa.pl
+            HostName airssh.melinakrzemowa.pl
+            User ${{ secrets.SSH_USERNAME }}
+            ProxyCommand cloudflared access ssh --hostname %h
+            StrictHostKeyChecking no
+            UserKnownHostsFile /dev/null
+          EOF
+
+      - name: Deploy on Air
+        env:
+          SSH_TARGET: ${{ secrets.SSH_USERNAME }}@airssh.melinakrzemowa.pl
+          DEPLOY_DIR: /Users/${{ secrets.SSH_USERNAME }}/services/fossil.kelostrada.pl
+        run: |
+          set -e
+          ssh "$SSH_TARGET" "mkdir -p '$DEPLOY_DIR/db'"
+          scp docker-compose.yml "$SSH_TARGET:$DEPLOY_DIR/docker-compose.yml"
+          scp db/schema.sql "$SSH_TARGET:$DEPLOY_DIR/db/schema.sql"
+          ssh "$SSH_TARGET" "VERSION=$VERSION DEPLOY_DIR=$DEPLOY_DIR bash -s" <<'EOF'
+          set -e
+          cd "$DEPLOY_DIR"
+          docker pull ghcr.io/kelostrada/fossil:$VERSION
+          VERSION=$VERSION docker compose up -d
+          docker image prune -f
+          EOF

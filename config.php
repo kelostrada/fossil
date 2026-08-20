@@ -3,10 +3,11 @@
 // Shared UI components (page header, etc.) available to every page.
 require_once __DIR__ . '/templates/components.php';
 
-// Load environment variables from .env file
+// Load environment variables from .env file. In containers there is no .env —
+// configuration arrives as real environment variables — so a missing file is fine.
 function loadEnv($path = '.env') {
     if (!file_exists($path)) {
-        throw new Exception('.env file not found');
+        return;
     }
 
     $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
@@ -26,6 +27,14 @@ function loadEnv($path = '.env') {
 
 // Load environment variables
 loadEnv();
+
+// Where scraper state files (page.txt, type.txt, last_fetched_id.txt,
+// notified_logins.json) live. Defaults to the app dir (shared-hosting layout);
+// containers set STATE_DIR to a mounted volume so the image stays immutable.
+function statePath($file) {
+    $dir = getenv('STATE_DIR') ?: __DIR__;
+    return rtrim($dir, '/') . '/' . $file;
+}
 
 // Assign every visitor a long-lived anonymous id (used to dedupe theme votes;
 // there's no auth, so we just trust the browser). Set before any output.

@@ -28,8 +28,8 @@ if ($scrapeType == 'highscores') {
     $types = 9;
     $pages = 4;
 
-    $page = file_get_contents(__DIR__ . '/page.txt');
-    $type = file_get_contents(__DIR__ . '/type.txt');
+    $page = file_get_contents(statePath('page.txt'));
+    $type = file_get_contents(statePath('type.txt'));
 
     $contents = fetchRemote("http://fossil-legacy.com/highscores.php?&type=$type&page=$page");
     if ($contents === false) {
@@ -47,8 +47,8 @@ if ($scrapeType == 'highscores') {
         $type = $type + 1 > $types ? 1 : $type + 1;
     }
 
-    file_put_contents(__DIR__ . '/page.txt', $page);
-    file_put_contents(__DIR__ . '/type.txt', $type);
+    file_put_contents(statePath('page.txt'), $page);
+    file_put_contents(statePath('type.txt'), $type);
 
     // echo json_encode($scores);
 }
@@ -101,7 +101,7 @@ if ($scrapeType == 'online') {
 
 if ($scrapeType == 'profiles') {
     // Get the last fetched ID
-    $lastFetchedId = (int)file_get_contents(__DIR__ . '/last_fetched_id.txt');
+    $lastFetchedId = (int)file_get_contents(statePath('last_fetched_id.txt'));
 
     // Find the next character to process based on ID
     $sql = "SELECT cv.id, cv.name 
@@ -121,7 +121,7 @@ if ($scrapeType == 'profiles') {
         $characterName = $row['name'];
 
         // Update the last fetched ID
-        file_put_contents(__DIR__ . '/last_fetched_id.txt', $characterId);
+        file_put_contents(statePath('last_fetched_id.txt'), $characterId);
 
         // Fetch character profile
         $url = "http://fossil-legacy.com/characterprofile.php?name=" . urlencode($characterName);
@@ -320,7 +320,7 @@ if ($scrapeType == 'profiles') {
         }
     } else {
         // Reset the last fetched ID when no more characters are found
-        file_put_contents('last_fetched_id.txt', '0');
+        file_put_contents(statePath('last_fetched_id.txt'), '0');
         echo json_encode([
             'success' => false,
             'error' => 'No more characters to process',

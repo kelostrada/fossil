@@ -29,7 +29,7 @@ $watchedPlayers = [
 ];
 
 // File to store last notification times
-$cooldownFile = __DIR__ . '/notified_logins.json';
+$cooldownFile = statePath('notified_logins.json');
 
 // Cooldown in seconds (6 hours)
 $cooldownSeconds = 6 * 60 * 60;

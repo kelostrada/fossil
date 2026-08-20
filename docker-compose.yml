@@ -1,0 +1,62 @@
+services:
+  db:
+    # Pinned to match the source server (seohost runs MariaDB 10.11) so the
+    # production dump imports 1:1. Buffer pool kept small — this DB is tiny.
+    image: mariadb:10.11
+    restart: unless-stopped
+    command: >
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --innodb-buffer-pool-size=128M
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MARIADB_DATABASE: ${DB_DATABASE:-fossil}
+      MARIADB_USER: ${DB_USERNAME:-fossil}
+      MARIADB_PASSWORD: ${DB_PASSWORD}
+      TZ: ${TZ:-Europe/Warsaw}
+    volumes:
+      - fossil_db:/var/lib/mysql
+      # Drop schema.sql (or a full production dump) here before first start;
+      # MariaDB imports /docker-entrypoint-initdb.d/*.sql only on a fresh volume.
+      - ./db:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web:
+    image: ghcr.io/kelostrada/fossil:${VERSION:-latest}
+    restart: unless-stopped
+    ports:
+      - "${PORT:-4003}:80"
+    environment: &app_env
+      DB_HOST: db
+      DB_USERNAME: ${DB_USERNAME:-fossil}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_DATABASE: ${DB_DATABASE:-fossil}
+      DISCORD_WEBHOOK_URL: ${DISCORD_WEBHOOK_URL}
+      TZ: ${TZ:-Europe/Warsaw}
+    volumes:
+      - fossil_state:/var/www/state
+    depends_on:
+      db:
+        condition: service_healthy
+
+  cron:
+    image: ghcr.io/kelostrada/fossil:${VERSION:-latest}
+    restart: unless-stopped
+    user: www-data
+    command: /usr/local/bin/fossil-cron
+    environment: *app_env
+    volumes:
+      - fossil_state:/var/www/state
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  fossil_db:
+    name: fossil_db
+  fossil_state:
+    name: fossil_state
