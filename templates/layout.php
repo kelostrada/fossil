@@ -162,8 +162,9 @@ $extraHead = (isset($extraHead) ? $extraHead : '') . '
                         ['url' => 'calculators.php?calc=equipment', 'label' => 'Equipment Damage',  'file' => 'calculators.php', 'calc' => 'equipment'],
                     ],
                     'Wiki' => [
-                        ['url' => 'wiki_spells.php', 'label' => 'Spells',          'file' => 'wiki_spells.php'],
-                        ['url' => 'wiki_summon.php', 'label' => 'Summon Creature', 'file' => 'wiki_summon.php'],
+                        ['url' => 'wiki_spells.php',     'label' => 'Spells',           'file' => 'wiki_spells.php'],
+                        ['url' => 'wiki_summon.php',     'label' => 'Summon Creature',  'file' => 'wiki_summon.php'],
+                        ['url' => 'wiki_experience.php', 'label' => 'Experience',       'file' => 'wiki_experience.php'],
                     ],
                 ];
                 $currentFile = basename($_SERVER['PHP_SELF']);
