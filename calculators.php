@@ -57,13 +57,13 @@ ob_start();
                        class="mt-1 block w-full border border-gray-300 rounded p-2"/>
             </label>
             <label class="block text-sm">
-                <span class="text-gray-700">% remaining to next skill</span>
-                <input type="number" id="train-pct" value="100" min="0" max="100"
+                <span class="text-gray-700">Target skill</span>
+                <input type="number" id="train-end" value="50" min="11" max="150"
                        class="mt-1 block w-full border border-gray-300 rounded p-2"/>
             </label>
             <label class="block text-sm sm:col-span-2">
-                <span class="text-gray-700">Target skill</span>
-                <input type="number" id="train-end" value="50" min="11" max="150"
+                <span class="text-gray-700">% remaining to next skill</span>
+                <input type="number" id="train-pct" value="100" min="0" max="100"
                        class="mt-1 block w-full border border-gray-300 rounded p-2"/>
             </label>
         </div>
@@ -77,7 +77,7 @@ ob_start();
         <h2 class="text-xl font-semibold mb-1">Magic Level</h2>
         <p class="text-sm text-gray-500 mb-4">Estimates mana needed (and time to regenerate it) to reach a target magic level.</p>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <label class="block text-sm">
+            <label class="block text-sm sm:col-span-2">
                 <span class="text-gray-700">Vocation</span>
                 <select id="ml-voc" class="mt-1 block w-full border border-gray-300 rounded p-2">
                     <option value="sorcerer">Sorcerer</option>
@@ -87,11 +87,6 @@ ob_start();
                 </select>
             </label>
             <label class="block text-sm">
-                <span class="text-gray-700">% remaining to next mlvl</span>
-                <input type="number" id="ml-pct" value="100" min="0" max="100"
-                       class="mt-1 block w-full border border-gray-300 rounded p-2"/>
-            </label>
-            <label class="block text-sm">
                 <span class="text-gray-700">Current mlvl</span>
                 <input type="number" id="ml-start" value="0" min="0" max="139"
                        class="mt-1 block w-full border border-gray-300 rounded p-2"/>
@@ -99,6 +94,11 @@ ob_start();
             <label class="block text-sm">
                 <span class="text-gray-700">Target mlvl</span>
                 <input type="number" id="ml-end" value="10" min="1" max="140"
+                       class="mt-1 block w-full border border-gray-300 rounded p-2"/>
+            </label>
+            <label class="block text-sm sm:col-span-2">
+                <span class="text-gray-700">% remaining to next mlvl</span>
+                <input type="number" id="ml-pct" value="100" min="0" max="100"
                        class="mt-1 block w-full border border-gray-300 rounded p-2"/>
             </label>
         </div>
@@ -181,6 +181,7 @@ const SPELLS = <?php echo json_encode($spells); ?>;
 
 // ===== Helpers =====
 function fmt(n) { return Math.round(n).toLocaleString(); }
+
 function fmtTime(seconds) {
     if (!isFinite(seconds) || seconds <= 0) return '0s';
     const d = Math.floor(seconds / 86400);
@@ -193,6 +194,34 @@ function fmtTime(seconds) {
     if (m) parts.push(m + 'm');
     if (s && !d && !h) parts.push(s + 's');
     return parts.join(' ') || '<1s';
+}
+
+// Reads an integer input along with the min/max declared on the element, so the
+// markup stays the single source of truth for what counts as a valid range.
+// Pass blankDefault for a field that is allowed to be left empty (the % ones
+// mean "100% of the level still to go" when blank).
+function readField(id, name, blankDefault) {
+    const el = document.getElementById(id);
+    const blank = el.value === '';
+    const n = (blank && blankDefault !== undefined) ? blankDefault : parseInt(el.value, 10);
+    return {
+        name,
+        value: n,
+        filled: Number.isFinite(n),
+        min: el.min === '' ? -Infinity : parseInt(el.min, 10),
+        max: el.max === '' ? Infinity : parseInt(el.max, 10)
+    };
+}
+
+// Say why there is no answer. Bailing out silently leaves the previous result
+// on screen, which reads as a confident answer to the question just typed.
+function note(out, msg) {
+    out.innerHTML = `<p class="text-sm text-gray-500">${msg}</p>`;
+}
+
+// First field that is blank or outside its own min/max, or null if all are fine.
+function badField(fields) {
+    return fields.find(f => !f.filled || f.value < f.min || f.value > f.max) || null;
 }
 
 const VOC_LABEL = {
@@ -219,13 +248,16 @@ function calcTraining() {
     if (!out) return;
     const voc = document.getElementById('train-voc').value;
     const skill = document.getElementById('train-skill').value;
-    const start = parseInt(document.getElementById('train-start').value, 10);
-    const end = parseInt(document.getElementById('train-end').value, 10);
-    const pctRaw = document.getElementById('train-pct').value;
-    const pct = pctRaw === '' ? 100 : parseInt(pctRaw, 10);
+    const startF = readField('train-start', 'Current skill');
+    const endF = readField('train-end', 'Target skill');
+    const pctF = readField('train-pct', '% remaining to next skill', 100);
+    const start = startF.value;
+    const end = endF.value;
+    const pct = pctF.value;
 
-    if (!Number.isFinite(start) || !Number.isFinite(end) || !Number.isFinite(pct)) return;
-    if (end <= start || pct < 0 || pct > 100) return;
+    const bad = badField([startF, endF, pctF]);
+    if (bad) return note(out, `${bad.name} must be a number between ${bad.min} and ${bad.max}.`);
+    if (end <= start) return note(out, `Target skill must be higher than your current skill (${start}).`);
 
     const A = SKILL_BASE[skill];
     const b = SKILL_MULT[voc][skill];
@@ -258,13 +290,16 @@ function calcMagic() {
     const out = document.getElementById('ml-result');
     if (!out) return;
     const voc = document.getElementById('ml-voc').value;
-    const start = parseInt(document.getElementById('ml-start').value, 10);
-    const end = parseInt(document.getElementById('ml-end').value, 10);
-    const pctRaw = document.getElementById('ml-pct').value;
-    const pct = pctRaw === '' ? 100 : parseInt(pctRaw, 10);
+    const startF = readField('ml-start', 'Current mlvl');
+    const endF = readField('ml-end', 'Target mlvl');
+    const pctF = readField('ml-pct', '% remaining to next mlvl', 100);
+    const start = startF.value;
+    const end = endF.value;
+    const pct = pctF.value;
 
-    if (!Number.isFinite(start) || !Number.isFinite(end) || !Number.isFinite(pct)) return;
-    if (end <= start || pct < 0 || pct > 100) return;
+    const bad = badField([startF, endF, pctF]);
+    if (bad) return note(out, `${bad.name} must be a number between ${bad.min} and ${bad.max}.`);
+    if (end <= start) return note(out, `Target mlvl must be higher than your current mlvl (${start}).`);
     if (end > MAGIC_CAP[voc]) {
         out.innerHTML = `<p class="text-red-600">${VOC_LABEL[voc]} will never reach mlvl ${end} (max ${MAGIC_CAP[voc]}).</p>`;
         return;
@@ -423,7 +458,7 @@ function calcEquipment() {
 function wire(ids, fn) {
     for (const id of ids) {
         const el = document.getElementById(id);
-        if (!el) return;
+        if (!el) continue;   // section not on this tab; keep wiring the others
         el.addEventListener('input', fn);
         el.addEventListener('change', fn);
     }
