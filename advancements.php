@@ -32,6 +32,7 @@ ob_start();
         WHERE r.rn = 1
           AND r.prev_score IS NOT NULL
           AND r.score <> r.prev_score
+          AND " . hiddenCharactersCondition($conn, 'r.name') . "
         ORDER BY r.timestamp DESC
         LIMIT 50;
     ";

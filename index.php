@@ -13,9 +13,10 @@ $skillMap = $GLOBALS['skillNames'];
 
 // Get currently online players
 $onlineQuery = "
-    SELECT name, level 
-    FROM online_results 
+    SELECT name, level
+    FROM online_results
     WHERE online_time >= NOW() - INTERVAL 2 MINUTE
+    AND " . hiddenCharactersCondition($conn, 'name') . "
     GROUP BY name
     ORDER BY level DESC";
 $onlineResult = $conn->query($onlineQuery);

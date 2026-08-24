@@ -17,9 +17,10 @@ $playerDeathsQuery = "
         killed_by as killer_name, 
         DATE(death_time) as death_date,
         COUNT(*) as count 
-    FROM character_deaths 
-    WHERE 
+    FROM character_deaths
+    WHERE
         is_player = 0
+        AND " . hiddenCharactersCondition($conn, 'character_name') . "
     GROUP BY killer_name, death_date
     ORDER BY killer_name, death_date DESC
 ";
@@ -44,9 +45,10 @@ $elementalDeathsQuery = "
         END as killer_name,
         DATE(death_time) as death_date,
         COUNT(*) as count 
-    FROM character_deaths 
-    WHERE 
+    FROM character_deaths
+    WHERE
         killed_by IN ('hpfire', 'hpenergy', 'hpearth')
+        AND " . hiddenCharactersCondition($conn, 'character_name') . "
     GROUP BY killer_name, death_date
     ORDER BY death_date DESC
 ";
@@ -65,9 +67,11 @@ $pvpDeathsQuery = "
     SELECT 
         DATE(death_time) as death_date,
         COUNT(*) as count 
-    FROM character_deaths 
-    WHERE 
+    FROM character_deaths
+    WHERE
         is_player = 1
+        AND " . hiddenCharactersCondition($conn, 'character_name') . "
+        AND " . hiddenCharactersCondition($conn, 'killed_by') . "
     GROUP BY death_date
     ORDER BY death_date DESC
 ";
