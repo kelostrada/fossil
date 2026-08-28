@@ -22,9 +22,6 @@ $watchedPlayers = [
     "REDACTED",
     "REDACTED",
     "REDACTED",
-    "REDACTED",
-    "REDACTED",
-    "REDACTED",
     "REDACTED"
 ];
 
