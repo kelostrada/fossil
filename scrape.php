@@ -79,8 +79,10 @@ if ($scrapeType == 'online') {
         $onlineInsertStmt->bind_param("si", $name, $level);
         $onlineInsertStmt->execute();
 
-        // Store or update vocation
-        $vocationStmt = $conn->prepare("INSERT INTO character_vocations (name, vocation) VALUES (?, ?) ON DUPLICATE KEY UPDATE vocation = VALUES(vocation)");
+        // Store or update vocation. Being on the online list proves the
+        // character exists, so this also clears a stale `exists` = 0 left by an
+        // earlier profile lookup that couldn't find them.
+        $vocationStmt = $conn->prepare("INSERT INTO character_vocations (name, vocation) VALUES (?, ?) ON DUPLICATE KEY UPDATE vocation = VALUES(vocation), `exists` = 1");
         if ($vocationStmt) {
             $vocationStmt->bind_param("ss", $name, $vocation);
             $vocationStmt->execute();
@@ -187,8 +189,10 @@ if ($scrapeType == 'profiles') {
                 }
 
                 if ($vocation && $level) {
-                    // Store vocation with created date
-                    $vocationStmt = $conn->prepare("INSERT INTO character_vocations (name, vocation, created_at) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE vocation = VALUES(vocation), created_at = VALUES(created_at), last_updated = NOW()");
+                    // Store vocation with created date. A profile that parses
+                    // proves the character exists, so clear any stale
+                    // `exists` = 0 from a previous failed lookup.
+                    $vocationStmt = $conn->prepare("INSERT INTO character_vocations (name, vocation, created_at) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE vocation = VALUES(vocation), created_at = VALUES(created_at), last_updated = NOW(), `exists` = 1");
                     if ($vocationStmt) {
                         $createdStr = $created ? $created->format('Y-m-d H:i:s') : null;
                         $vocationStmt->bind_param("sss", $characterName, $vocation, $createdStr);
