@@ -6,4 +6,5 @@
 
 ## Hidden characters
 
-- Characters listed in `hiddenCharacters` in `config.php` (configured in STATE_DIR) are hidden from all UI pages and data endpoints via `isHiddenCharacter()` / `hiddenCharactersCondition()`. They are still scraped and stored normally. Any new read path (page or JSON endpoint) must apply the same filter.
+- Characters listed in `hidden_characters.json` (a JSON array of names in `STATE_DIR`, loaded by `hiddenCharacters()` in `config.php`) are hidden from all UI pages and data endpoints via `isHiddenCharacter()` / `hiddenCharactersCondition()`. They are still scraped and stored normally. Any new read path (page or JSON endpoint) must apply the same filter.
+- Character names are deployment data, never source. Keep them in the `STATE_DIR` JSON lists (`hidden_characters.json`, `watched_players.json`) — do not hardcode a real character name in code, comments, migrations, fixtures or commit messages.

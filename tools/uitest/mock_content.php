@@ -117,7 +117,7 @@ function uitest_highscores(): string
 {
     $header = render_page_header('Highscores');
     $vocs = ['Knight', 'Paladin', 'Sorcerer', 'Druid', 'No vocation'];
-    $longNames = ['REDACTED', 'Witch', 'Sham Bernardo', 'Interemptatis Rex', 'Lyra', 'Drijaximus', 'Al', 'Plains Of Havoc', 'Mortendis', 'Xy'];
+    $longNames = ['Ravenna Stormcaller', 'Witch', 'Sham Bernardo', 'Interemptatis Rex', 'Lyra', 'Drijaximus', 'Al', 'Plains Of Havoc', 'Mortendis', 'Xy'];
     $cards = '';
     foreach ($vocs as $voc) {
         $rows = '';

@@ -93,12 +93,50 @@ $GLOBALS['skillNames'] = [
     6 => 'Fishing'
 ];
 
+// Character name lists are deployment data, not code: they live as JSON arrays
+// in STATE_DIR so real names stay out of the repository. A missing, unreadable
+// or malformed file yields an empty list, which is the inert default — nothing
+// hidden, nobody watched — rather than a fatal error on a page request.
+function loadNameList($file) {
+    static $cache = [];
+
+    if (array_key_exists($file, $cache)) {
+        return $cache[$file];
+    }
+
+    $names = [];
+    $path = statePath($file);
+
+    if (is_readable($path)) {
+        $decoded = json_decode(file_get_contents($path), true);
+        if (is_array($decoded)) {
+            foreach ($decoded as $name) {
+                if (is_string($name) && trim($name) !== '') {
+                    $names[] = trim($name);
+                }
+            }
+        } else {
+            error_log("Name list is not a JSON array, ignoring: $path");
+        }
+    }
+
+    $cache[$file] = $names;
+    return $names;
+}
+
 // Characters that are scraped and stored like everyone else but must never be
 // shown anywhere in the UI or returned by the data endpoints.
-$GLOBALS['hiddenCharacters'] = ['REDACTED'];
+function hiddenCharacters() {
+    return loadNameList('hidden_characters.json');
+}
+
+// Characters whose logins are announced on Discord by notify.php.
+function watchedPlayers() {
+    return loadNameList('watched_players.json');
+}
 
 function isHiddenCharacter($name) {
-    foreach ($GLOBALS['hiddenCharacters'] as $hidden) {
+    foreach (hiddenCharacters() as $hidden) {
         if (strcasecmp($hidden, $name) === 0) {
             return true;
         }
@@ -106,10 +144,10 @@ function isHiddenCharacter($name) {
     return false;
 }
 
-// SQL condition excluding hidden characters, e.g. "name NOT IN ('REDACTED')".
+// SQL condition excluding hidden characters, e.g. "name NOT IN ('Someone')".
 // Values are escaped, so the fragment is safe to inline in a query.
 function hiddenCharactersCondition($conn, $column) {
-    $names = $GLOBALS['hiddenCharacters'];
+    $names = hiddenCharacters();
     if (empty($names)) {
         return "1=1";
     }

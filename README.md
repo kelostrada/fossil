@@ -110,7 +110,7 @@ Example cron entries:
 
 ## Discord Notifications
 
-`notify.php` checks the `online_results` table for a hard-coded list of watched players and posts to the Discord webhook when one logs in. A 6-hour per-player cooldown is tracked in `notified_logins.json`. Edit `$watchedPlayers` in [`notify.php`](notify.php) to change the list.
+`notify.php` checks the `online_results` table for a list of watched players and posts to the Discord webhook when one logs in. A 6-hour per-player cooldown is tracked in `notified_logins.json`. The list is a JSON array of names in `watched_players.json` under `STATE_DIR` (see [`watched_players.json.sample`](watched_players.json.sample)) — it is deployment data and is not committed. An absent or empty list disables notifications. `hidden_characters.json` works the same way and hides those characters from every page and data endpoint.
 
 ## License
 

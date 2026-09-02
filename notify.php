@@ -4,26 +4,16 @@ require_once 'config.php';
 // Get database connection
 $conn = getDatabaseConnection();
 
-// Players to watch (case sensitive)
-$watchedPlayers = [
-    "REDACTED",
-    "REDACTED",
-    "REDACTED",
-    "REDACTED",
-    "REDACTED",
-    "REDACTED",
-    "REDACTED",
-    "REDACTED",
-    "REDACTED",
-    "REDACTED",
-    "REDACTED",
-    "REDACTED",
-    "REDACTED",
-    "REDACTED",
-    "REDACTED",
-    "REDACTED",
-    "REDACTED"
-];
+// Players to watch (case sensitive). The list lives in STATE_DIR, not in the
+// repo — see watchedPlayers() in config.php.
+$watchedPlayers = watchedPlayers();
+
+// No list configured (or the file is missing): nothing to announce. Bail before
+// building the query — zero placeholders would produce an invalid "IN ()".
+if (empty($watchedPlayers)) {
+    $conn->close();
+    return;
+}
 
 // File to store last notification times
 $cooldownFile = statePath('notified_logins.json');

@@ -6,6 +6,8 @@ notified_logins.json
 vendor/
 .DS_Store
 last_fetched_id.txt 
+hidden_characters.json
+watched_players.json
 
 # UI test artifacts
 tools/uitest/out/
