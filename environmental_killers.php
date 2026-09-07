@@ -15,6 +15,22 @@ $yesterday = date('Y-m-d', strtotime('-1 day'));
 $sevenDayStart = date('Y-m-d', strtotime('-6 days'));
 $thirtyDayStart = date('Y-m-d', strtotime('-29 days'));
 
+// Deaths the game attributes to a damage type rather than to a creature or
+// another player. They are collapsed into one "Elements" row instead of showing
+// up as a row per damage type. Declared once because the two queries below have
+// to stay in step: whatever the elemental query collects, the monster query must
+// exclude, or the same death lands in the table twice. Extend this list if a new
+// damage type shows up in killed_by.
+$environmentalCauses = [
+    'hpfire', 'hpenergy', 'hpearth',
+    'fire', 'energy', 'earth',
+    'physical', 'life drain'
+];
+
+$environmentalList = implode(', ', array_map(function ($cause) use ($conn) {
+    return "'" . $conn->real_escape_string($cause) . "'";
+}, $environmentalCauses));
+
 // Get player deaths to monsters (monsters killing players)
 $playerDeathsQuery = "
     SELECT 
@@ -24,10 +40,10 @@ $playerDeathsQuery = "
     FROM character_deaths
     WHERE
         is_player = 0
-        -- Elemental damage is aggregated into a single 'Elements' row by the
-        -- next query; excluding it here stops the same death being counted
-        -- once under its raw hp* name and again under 'Elements'.
-        AND killed_by NOT IN ('hpfire', 'hpenergy', 'hpearth')
+        -- Damage-type deaths belong to the 'Elements' row built by the next
+        -- query; excluding them here stops the same death being counted once
+        -- under its raw cause and again under 'Elements'.
+        AND killed_by NOT IN ($environmentalList)
         AND " . hiddenCharactersCondition($conn, 'character_name') . "
     GROUP BY killer_name, death_date
     ORDER BY killer_name, death_date DESC
@@ -45,19 +61,13 @@ if ($playerDeathsResult) {
 // Get elemental deaths
 $elementalDeathsQuery = "
     SELECT 
-        CASE 
-            WHEN killed_by = 'hpfire' THEN 'fire'
-            WHEN killed_by = 'hpenergy' THEN 'energy'
-            WHEN killed_by = 'hpearth' THEN 'earth'
-            ELSE killed_by
-        END as killer_name,
         DATE(death_time) as death_date,
         COUNT(*) as count 
     FROM character_deaths
     WHERE
-        killed_by IN ('hpfire', 'hpenergy', 'hpearth')
+        killed_by IN ($environmentalList)
         AND " . hiddenCharactersCondition($conn, 'character_name') . "
-    GROUP BY killer_name, death_date
+    GROUP BY death_date
     ORDER BY death_date DESC
 ";
 
