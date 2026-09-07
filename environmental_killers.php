@@ -6,10 +6,14 @@ $pageTitle = 'Environmental Killers - Fossil Stats';
 // Get database connection
 $conn = getDatabaseConnection();
 
-// Get the time periods
+// Rolling windows, inclusive of today: "last 7 days" is today plus the six
+// preceding days, "last 30 days" today plus the twenty-nine preceding. This was
+// a calendar week ('monday this week'), which collapsed to today's deaths every
+// Monday and left the column reading zero for a large part of each week.
 $today = date('Y-m-d');
 $yesterday = date('Y-m-d', strtotime('-1 day'));
-$weekStart = date('Y-m-d', strtotime('monday this week'));
+$sevenDayStart = date('Y-m-d', strtotime('-6 days'));
+$thirtyDayStart = date('Y-m-d', strtotime('-29 days'));
 
 // Get player deaths to monsters (monsters killing players)
 $playerDeathsQuery = "
@@ -20,6 +24,10 @@ $playerDeathsQuery = "
     FROM character_deaths
     WHERE
         is_player = 0
+        -- Elemental damage is aggregated into a single 'Elements' row by the
+        -- next query; excluding it here stops the same death being counted
+        -- once under its raw hp* name and again under 'Elements'.
+        AND killed_by NOT IN ('hpfire', 'hpenergy', 'hpearth')
         AND " . hiddenCharactersCondition($conn, 'character_name') . "
     GROUP BY killer_name, death_date
     ORDER BY killer_name, death_date DESC
@@ -88,107 +96,69 @@ if ($pvpDeathsResult) {
 // Process the data into a structured format
 $monsterKills = [];
 
-// Process player deaths to monsters (K - kills by monsters)
+function newKillerEntry($name) {
+    return [
+        'name' => $name,
+        'dates' => [],
+        'total_kills' => 0,
+        'last30_kills' => 0,
+        'last7_kills' => 0,
+        'today_kills' => 0,
+        'yesterday_kills' => 0
+    ];
+}
+
+// Fold one grouped row (a death date and a count) into a killer's totals.
+function addKills(&$entry, $deathDate, $count) {
+    global $today, $yesterday, $sevenDayStart, $thirtyDayStart;
+
+    if (!isset($entry['dates'][$deathDate])) {
+        $entry['dates'][$deathDate] = ['kills' => 0];
+    }
+
+    $entry['dates'][$deathDate]['kills'] += $count;
+    $entry['total_kills'] += $count;
+
+    if ($deathDate >= $thirtyDayStart) {
+        $entry['last30_kills'] += $count;
+    }
+
+    if ($deathDate >= $sevenDayStart) {
+        $entry['last7_kills'] += $count;
+    }
+
+    if ($deathDate == $today) {
+        $entry['today_kills'] += $count;
+    } else if ($deathDate == $yesterday) {
+        $entry['yesterday_kills'] += $count;
+    }
+}
+
+// Deaths caused by monsters, one row per creature
 foreach ($playerDeaths as $death) {
     $monsterName = $death['killer_name'];
-    $deathDate = $death['death_date'];
-    $count = $death['count'];
-    
+
     if (!isset($monsterKills[$monsterName])) {
-        $monsterKills[$monsterName] = [
-            'name' => $monsterName,
-            'dates' => [],
-            'total_kills' => 0,
-            'week_kills' => 0,
-            'today_kills' => 0,
-            'yesterday_kills' => 0
-        ];
+        $monsterKills[$monsterName] = newKillerEntry($monsterName);
     }
-    
-    if (!isset($monsterKills[$monsterName]['dates'][$deathDate])) {
-        $monsterKills[$monsterName]['dates'][$deathDate] = ['kills' => 0];
-    }
-    
-    $monsterKills[$monsterName]['dates'][$deathDate]['kills'] += $count;
-    $monsterKills[$monsterName]['total_kills'] += $count;
-    
-    if ($deathDate >= $weekStart) {
-        $monsterKills[$monsterName]['week_kills'] += $count;
-    }
-    
-    if ($deathDate == $today) {
-        $monsterKills[$monsterName]['today_kills'] += $count;
-    } else if ($deathDate == $yesterday) {
-        $monsterKills[$monsterName]['yesterday_kills'] += $count;
-    }
+
+    addKills($monsterKills[$monsterName], $death['death_date'], $death['count']);
 }
 
-// Process elemental deaths
+// Elemental damage, aggregated into a single row
 foreach ($elementalDeaths as $death) {
-    $monsterName = $death['killer_name'];
-    $deathDate = $death['death_date'];
-    $count = $death['count'];
-    
     if (!isset($monsterKills['Elements'])) {
-        $monsterKills['Elements'] = [
-            'name' => 'Elements',
-            'dates' => [],
-            'total_kills' => 0,
-            'week_kills' => 0,
-            'today_kills' => 0,
-            'yesterday_kills' => 0
-        ];
+        $monsterKills['Elements'] = newKillerEntry('Elements');
     }
-    
-    if (!isset($monsterKills['Elements']['dates'][$deathDate])) {
-        $monsterKills['Elements']['dates'][$deathDate] = ['kills' => 0];
-    }
-    
-    $monsterKills['Elements']['dates'][$deathDate]['kills'] += $count;
-    $monsterKills['Elements']['total_kills'] += $count;
-    
-    if ($deathDate >= $weekStart) {
-        $monsterKills['Elements']['week_kills'] += $count;
-    }
-    
-    if ($deathDate == $today) {
-        $monsterKills['Elements']['today_kills'] += $count;
-    } else if ($deathDate == $yesterday) {
-        $monsterKills['Elements']['yesterday_kills'] += $count;
-    }
+
+    addKills($monsterKills['Elements'], $death['death_date'], $death['count']);
 }
 
-// Add Players entry for PvP deaths
-$monsterKills['Players'] = [
-    'name' => 'Players',
-    'dates' => [],
-    'total_kills' => 0,
-    'week_kills' => 0,
-    'today_kills' => 0,
-    'yesterday_kills' => 0
-];
+// Player kills, aggregated into a single row
+$monsterKills['Players'] = newKillerEntry('Players');
 
-// Process PvP deaths
 foreach ($pvpDeaths as $death) {
-    $deathDate = $death['death_date'];
-    $count = $death['count'];
-    
-    if (!isset($monsterKills['Players']['dates'][$deathDate])) {
-        $monsterKills['Players']['dates'][$deathDate] = ['kills' => 0];
-    }
-    
-    $monsterKills['Players']['dates'][$deathDate]['kills'] += $count;
-    $monsterKills['Players']['total_kills'] += $count;
-    
-    if ($deathDate >= $weekStart) {
-        $monsterKills['Players']['week_kills'] += $count;
-    }
-    
-    if ($deathDate == $today) {
-        $monsterKills['Players']['today_kills'] += $count;
-    } else if ($deathDate == $yesterday) {
-        $monsterKills['Players']['yesterday_kills'] += $count;
-    }
+    addKills($monsterKills['Players'], $death['death_date'], $death['count']);
 }
 
 // Sort the data based on total kills
@@ -211,7 +181,8 @@ ob_start();
                         <th class="px-4 py-2 text-left sortable">Name</th>
                         <th class="px-4 py-2 text-center sortable" data-sort-default="desc">Today</th>
                         <th class="px-4 py-2 text-center sortable">Yesterday</th>
-                        <th class="px-4 py-2 text-center sortable">Week Total</th>
+                        <th class="px-4 py-2 text-center sortable">Last 7 Days</th>
+                        <th class="px-4 py-2 text-center sortable">Last 30 Days</th>
                         <th class="px-4 py-2 text-center sortable">All-Time</th>
                     </tr>
                 </thead>
@@ -232,9 +203,14 @@ ob_start();
                                 <?= number_format($monster['yesterday_kills']) ?>
                             </td>
                             
-                            <!-- Week Total -->
+                            <!-- Last 7 Days -->
                             <td class="px-4 py-2 text-center">
-                                <?= number_format($monster['week_kills']) ?>
+                                <?= number_format($monster['last7_kills']) ?>
+                            </td>
+
+                            <!-- Last 30 Days -->
+                            <td class="px-4 py-2 text-center">
+                                <?= number_format($monster['last30_kills']) ?>
                             </td>
                             
                             <!-- All-Time -->
