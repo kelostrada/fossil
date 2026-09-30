@@ -1,19 +1,32 @@
 services:
   db:
     # Pinned to match the source server (seohost runs MariaDB 10.11) so the
-    # production dump imports 1:1. Buffer pool kept small — this DB is tiny.
+    # production dump imports 1:1.
     image: mariadb:10.11
     restart: unless-stopped
+    # Measured 2026-09-30 before trimming: 421 MB RSS for a 237 MB, 5-table,
+    # all-InnoDB database. key-buffer (MyISAM only — nothing here uses it) and
+    # aria-pagecache (384 on-disk temp tables in 23 days) sat at their 128M
+    # defaults. Peak connections ever: 12. The 128M buffer pool is 84% full
+    # and stays.
     command: >
       --character-set-server=utf8mb4
       --collation-server=utf8mb4_unicode_ci
       --innodb-buffer-pool-size=128M
+      --key-buffer-size=8M
+      --aria-pagecache-buffer-size=16M
+      --max-connections=40
+      --thread-cache-size=16
     environment:
       MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
       MARIADB_DATABASE: ${DB_DATABASE:-fossil}
       MARIADB_USER: ${DB_USERNAME:-fossil}
       MARIADB_PASSWORD: ${DB_PASSWORD}
       TZ: ${TZ:-Europe/Warsaw}
+      # jemalloc instead of glibc malloc, same reasoning as
+      # kelostrada.pl/docker-compose.yml: glibc never returns fragmented heap.
+      LD_PRELOAD: /usr/lib/aarch64-linux-gnu/libjemalloc.so.2
+      MALLOC_ARENA_MAX: "2"
     volumes:
       - fossil_db:/var/lib/mysql
       # Drop schema.sql (or a full production dump) here before first start;
