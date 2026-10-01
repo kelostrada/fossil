@@ -84,6 +84,9 @@ jobs:
           set -e
           cd "$DEPLOY_DIR"
           docker pull ghcr.io/kelostrada/fossil:$VERSION
+          # Refresh the local :latest tag too. compose falls back to :latest when VERSION is unset,
+          # and docker only updates the tag it pulled, so this keeps that fallback from starting a stale image.
+          docker pull ghcr.io/kelostrada/fossil:latest
           VERSION=$VERSION docker compose up -d
           docker image prune -f
           EOF
