@@ -12,3 +12,6 @@ watched_players.json
 # UI test artifacts
 tools/uitest/out/
 tools/uitest/shots/
+
+# Claude Code local settings: "don't ask again" saves approved commands verbatim, secrets included
+.claude/settings.local.json
